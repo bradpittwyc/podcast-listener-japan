@@ -1783,7 +1783,7 @@ body.android-runtime .android-only{display:inline-flex!important}
 </div>
 
 <!-- VIEW 2: LEARNING PLAYER (学伴播放器) -->
-<div class="page-view" id="playerView" style="display:none">
+<div class="page-view" id="playerView" style="display:none; flex-direction:column; width:100vw; height:100vh; overflow:hidden;">
     <!-- Player Top Bar -->
     <header class="player-header">
         <button class="player-back-btn" onclick="showView('home')">
@@ -1809,151 +1809,160 @@ body.android-runtime .android-only{display:inline-flex!important}
 
     <!-- Main Player Split View -->
     <div class="player-body">
-
-    <!-- Welcome screen (hidden when playing) -->
-    <div class="welcome-screen" id="welcome">
-        <div class="splash-box">
-            <div class="splash-icon-wrapper">
-                <i class="fa-solid fa-headphones-simple splash-icon"></i>
-            </div>
-            <h1 class="splash-app-name">播客学伴 日语版</h1>
-            <div class="splash-slogan-container">
-                <span class="splash-slogan">Live in the Language</span>
-            </div>
-            <p class="splash-hint">请在左侧选择一期播客，开启沉浸式 AI 学习</p>
-        </div>
-    </div>
-
-    <!-- Subtitle Scroll Area -->
-    <div class="sub-scroll" id="subScroll" style="display:none"></div>
-    <div id="subPanel" style="display:none"></div>
-
-    <!-- Middle Bottom: Flat Player Console -->
-    <div class="mid-player-console" id="leftPlayerConsole">
-        <!-- Progress Bar Row -->
-        <div class="mp-prog-row">
-            <span class="pb-time" id="pbCur">0:00</span>
-            <div class="prog-bar" id="progBar" onclick="seekAudio(event)">
-                <div class="prog-fill" id="progFill" style="width:0%"></div>
-            </div>
-            <span class="pb-time" id="pbTot">0:00</span>
-        </div>
-        
-        <!-- Controls Row -->
-        <div class="mp-ctrl-row">
-            <!-- Left: Playback, Volume, Speed -->
-            <div class="mp-left">
-                <button class="cbtn" onclick="skipAudio(-10)" title="-10秒"><i class="fa-solid fa-rotate-left"></i></button>
-                <button class="cbtn play" id="playBtn" onclick="togglePlay()"><i class="fa-solid fa-play"></i></button>
-                <button class="cbtn" onclick="skipAudio(30)" title="+30秒"><i class="fa-solid fa-rotate-right"></i></button>
-                
-                <div class="vol-ctrl-wrap">
-                    <button class="vol-btn" id="volBtn" onclick="toggleMute()" title="音量/静音">
-                        <i class="fa-solid fa-volume-high" id="volIcon"></i>
-                    </button>
-                    <input type="range" class="vol-slider" id="volSlider" min="0" max="1" step="0.05" value="1" oninput="setVolume(this.value)">
-                </div>
-
-                <div class="mp-speed-wrap">
-                    <span class="speed-lbl">0.25x</span>
-                    <input type="range" class="speed-slider" id="speedSlider" min="0.25" max="1.0" step="0.05" value="1.0" oninput="onSpeedSlider(this.value)">
-                    <span class="speed-lbl">原速</span>
-                </div>
-            </div>
-
-            <!-- Right: Loop Area -->
-            <div class="mp-right">
-                <div class="lp-loop-row" id="lc">
-                    <button class="lb" id="btnA" onclick="setLoopA()">A</button>
-                    <button class="lb" id="btnB" onclick="setLoopB()">B</button>
-                    <button class="lb" id="btnLoop" onclick="toggleLoop()"><i class="fa-solid fa-repeat"></i> Loop</button>
-                    <button class="lb danger" onclick="clearLoop()" title="清除 Loop"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-        <div class="transcript-actions">
-            <button id="subtitleShareBtn" class="transcript-share-btn android-only" disabled title="请等待整集字幕生成完成" onclick="shareSubtitleTranscript()"><i class="fa-solid fa-share-nodes" aria-hidden="true"></i>分享字幕</button>
-            <div class="transcript-export-group web-only"><span class="transcript-export-label">字幕</span>
-                <input id="subtitleExportFormat" type="hidden" value="srt">
-                <button id="subtitleFormatButton" class="transcript-format-button" type="button" aria-label="字幕导出格式" aria-haspopup="menu" aria-controls="subtitleFormatMenu" aria-expanded="false" onclick="toggleSubtitleFormatMenu()" onkeydown="if(event.key==='ArrowDown'){event.preventDefault();event.stopPropagation();toggleSubtitleFormatMenu(true)}"><span id="subtitleFormatLabel">SRT</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
-                <button onclick="exportSubtitles()"><i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i>导出字幕</button>
-            </div>
-            <button class="transcript-print-btn web-only" onclick="previewTranscriptPrint()" aria-label="打印预览" title="打印预览"><i class="fa-solid fa-print" aria-hidden="true"></i><span class="transcript-print-label">打印预览</span></button>
-        </div>
-            </div>
-        </div>
-
         <!-- Hidden elements for backward test compatibility -->
-        <div id="speedRow" style="display:none;">
-            <button class="lb" onclick="setSpeed(0.6)">0.6×</button>
-            <button class="lb" onclick="setSpeed(0.75)">0.75×</button>
-            <button class="lb active" onclick="setSpeed(1.0)">1.0×</button>
-            <span id="speedVal">1.0</span>
-            <span id="lblA"></span><span id="lblB"></span>
-            <img class="pb-cover" id="pbCover" src="" alt="">
-            <div id="pbTitle"></div><div id="pbAuthor"></div>
-        </div>
-    </div>
-</main>
+        <div id="colLeft" class="col-left" style="display:none"></div>
 
-<!-- ═══════════════════════════════ COLUMN 3: RIGHT (~25vw) AI Q&A COPILOT ═══════════════════════════════ -->
-<section class="col-right" id="colRight" ondblclick="toggleAiOnBlank(event)" onpointerdown="handleAiBlankTap(event)" onpointermove="handleAiBlankTap(event)" onpointerup="handleAiBlankTap(event)" onpointercancel="handleAiBlankTap(event)">
-    <div class="ai-panel-shell" id="aiPanelShell">
-    <button class="ai-desktop-expand-btn" id="aiDesktopExpandBtn" type="button" onclick="toggleAiPanel()" title="向左展开助教" aria-label="向左展开助教" aria-expanded="false" aria-controls="aiPanelShell"><i class="fa-solid fa-chevron-left" id="aiExpandIcon" aria-hidden="true"></i></button>
-    <div class="ai-section" id="aiSection">
-        <button type="button" class="icon-btn ai-phone-expand-btn" id="aiPhoneExpandBtn" onclick="toggleAiExpanded()" aria-label="展开助教对话" title="展开助教对话" aria-expanded="false" aria-controls="aiMessages">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>
-        </button>
-
-        <div class="ai-hd">
-            <div class="ai-hd-title">
-                <i class="fa-solid fa-wand-magic-sparkles" style="color:var(--purple)"></i>
-                <span>AI 学习助教</span>
-                <span class="ai-badge">（双击空白展开阅读）</span>
-            </div>
-            <div class="ai-hd-actions">
-                <div class="font-sizer" title="调节助教字体大小">
-                    <button class="font-btn" onclick="adjustAiFontSize(-1)">A-</button>
-                    <span class="font-disp" id="aiFontSizeDisplay">20px</span>
-                    <button class="font-btn" onclick="adjustAiFontSize(1)">A+</button>
+        <!-- Middle Column: Subtitles & Player Controls -->
+        <main class="col-mid" id="colMid">
+            <!-- Subtitle Container -->
+            <div style="flex:1; display:flex; flex-direction:column; min-height:0; overflow:hidden; position:relative;">
+                <!-- Welcome screen (hidden when playing) -->
+                <div class="welcome-screen" id="welcome">
+                    <div class="splash-box">
+                        <div class="splash-icon-wrapper">
+                            <i class="fa-solid fa-headphones-simple splash-icon"></i>
+                        </div>
+                        <h1 class="splash-app-name">播客学伴 日语版</h1>
+                        <div class="splash-slogan-container">
+                            <span class="splash-slogan">Live in the Language</span>
+                        </div>
+                        <p class="splash-hint">请在播客广场选择一期播客，开启沉浸式 AI 学习</p>
+                    </div>
                 </div>
-                <button class="icon-btn" onclick="clearAiChat()" title="清空对话记录">
-                    <i class="fa-solid fa-trash-can"></i>
-                </button>
-            </div>
-        </div>
 
-        <!-- Chat messages area -->
-        <div class="ai-messages" id="aiMessages">
-            <div class="ai-welcome-card" id="aiWelcomeCard" data-ai-welcome="true">
-                <button class="welcome-close" onclick="dismissAiWelcome()" aria-label="关闭提示" title="关闭提示">×</button>
-                <h4><i class="fa-solid fa-lightbulb" style="color:var(--amber)"></i> 智能字幕助学</h4>
-                在左侧字幕列表勾选任意句子，它们会自动被送入下方的提问框。<br>
-                你可以让大模型为你深度剖析<strong>长难句语法</strong>、<strong>地道习语</strong>或<strong>结合全集背景回答问题</strong>。
+                <!-- Subtitle Scroll Area -->
+                <div class="sub-scroll" id="subScroll" style="display:none"></div>
+                <div id="subPanel" style="display:none"></div>
             </div>
-        </div>
 
-        <!-- AI Input & Context panel -->
-        <div class="ai-input-panel">
-            <div class="selected-quotes-bar" id="selectedQuotesBar" style="display:none">
-                <span><i class="fa-solid fa-quote-left"></i> 已勾选 <strong id="selQuotesCount">0</strong> 句字幕</span>
-                <button class="clear-quotes-btn" onclick="clearSelectedCues()"><i class="fa-solid fa-xmark"></i> 取消勾选</button>
+            <!-- Middle Bottom: Flat Player Console -->
+            <div class="mid-player-console" id="leftPlayerConsole">
+                <!-- Progress Bar Row -->
+                <div class="mp-prog-row">
+                    <span class="pb-time" id="pbCur">0:00</span>
+                    <div class="prog-bar" id="progBar" onclick="seekAudio(event)">
+                        <div class="prog-fill" id="progFill" style="width:0%"></div>
+                    </div>
+                    <span class="pb-time" id="pbTot">0:00</span>
+                </div>
+                
+                <!-- Controls Row -->
+                <div class="mp-ctrl-row">
+                    <!-- Left: Playback, Volume, Speed -->
+                    <div class="mp-left">
+                        <button class="cbtn" onclick="skipAudio(-10)" title="-10秒"><i class="fa-solid fa-rotate-left"></i></button>
+                        <button class="cbtn play" id="playBtn" onclick="togglePlay()"><i class="fa-solid fa-play"></i></button>
+                        <button class="cbtn" onclick="skipAudio(30)" title="+30秒"><i class="fa-solid fa-rotate-right"></i></button>
+                        
+                        <div class="vol-ctrl-wrap">
+                            <button class="vol-btn" id="volBtn" onclick="toggleMute()" title="音量/静音">
+                                <i class="fa-solid fa-volume-high" id="volIcon"></i>
+                            </button>
+                            <input type="range" class="vol-slider" id="volSlider" min="0" max="1" step="0.05" value="1" oninput="setVolume(this.value)">
+                        </div>
+
+                        <div class="mp-speed-wrap">
+                            <span class="speed-lbl">0.25x</span>
+                            <input type="range" class="speed-slider" id="speedSlider" min="0.25" max="1.0" step="0.05" value="1.0" oninput="onSpeedSlider(this.value)">
+                            <span class="speed-lbl">原速</span>
+                        </div>
+                    </div>
+
+                    <!-- Right: Loop Area -->
+                    <div class="mp-right">
+                        <div class="lp-loop-row" id="lc">
+                            <button class="lb" id="btnA" onclick="setLoopA()">A</button>
+                            <button class="lb" id="btnB" onclick="setLoopB()">B</button>
+                            <button class="lb" id="btnLoop" onclick="toggleLoop()"><i class="fa-solid fa-repeat"></i> Loop</button>
+                            <button class="lb danger" onclick="clearLoop()" title="清除 Loop"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div class="transcript-actions">
+                            <button id="subtitleShareBtn" class="transcript-share-btn android-only" disabled title="请等待整集字幕生成完成" onclick="shareSubtitleTranscript()"><i class="fa-solid fa-share-nodes" aria-hidden="true"></i>分享字幕</button>
+                            <div class="transcript-export-group web-only"><span class="transcript-export-label">字幕</span>
+                                <input id="subtitleExportFormat" type="hidden" value="srt">
+                                <button id="subtitleFormatButton" class="transcript-format-button" type="button" aria-label="字幕导出格式" aria-haspopup="menu" aria-controls="subtitleFormatMenu" aria-expanded="false" onclick="toggleSubtitleFormatMenu()" onkeydown="if(event.key==='ArrowDown'){event.preventDefault();event.stopPropagation();toggleSubtitleFormatMenu(true)}"><span id="subtitleFormatLabel">SRT</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
+                                <button onclick="exportSubtitles()"><i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i>导出字幕</button>
+                            </div>
+                            <button class="transcript-print-btn web-only" onclick="previewTranscriptPrint()" aria-label="打印预览" title="打印预览"><i class="fa-solid fa-print" aria-hidden="true"></i><span class="transcript-print-label">打印预览</span></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hidden elements for backward test compatibility -->
+                <div id="speedRow" style="display:none;">
+                    <button class="lb" onclick="setSpeed(0.6)">0.6×</button>
+                    <button class="lb" onclick="setSpeed(0.75)">0.75×</button>
+                    <button class="lb active" onclick="setSpeed(1.0)">1.0×</button>
+                    <span id="speedVal">1.0</span>
+                    <span id="lblA"></span><span id="lblB"></span>
+                    <img class="pb-cover" id="pbCover" src="" alt="">
+                    <div id="pbTitle"></div><div id="pbAuthor"></div>
+                </div>
             </div>
-            <div class="ai-quick-tags">
-                <button class="qtag" disabled onclick="quickAsk('🌸 假名/敬语')">🌸 假名/敬语</button>
-                <button class="qtag" disabled onclick="quickAsk('语法拆解')">📖 语法拆解</button>
-                <button class="qtag" disabled onclick="quickAsk('地道用法')">🗣️ 地道用法</button>
-                <button class="qtag" disabled onclick="quickAsk('文化背景')">🗾 文化背景</button>
-                <button class="qtag" disabled onclick="quickAsk('总结本集')">📝 总结本集</button>
-            </div>
-            <div class="ai-input-row">
-                <textarea id="aiInput" aria-label="向 AI 助教提问" onkeydown="handleAiKey(event)"></textarea>
-                <button class="ai-send-btn" id="aiSendBtn" disabled onclick="sendAiQuestion()" title="提问">
-                    <i class="fa-solid fa-paper-plane"></i>
+        </main>
+
+        <!-- COLUMN 3: RIGHT (~28vw) AI Q&A COPILOT -->
+        <section class="col-right" id="colRight" ondblclick="toggleAiOnBlank(event)" onpointerdown="handleAiBlankTap(event)" onpointermove="handleAiBlankTap(event)" onpointerup="handleAiBlankTap(event)" onpointercancel="handleAiBlankTap(event)">
+            <div class="ai-panel-shell" id="aiPanelShell">
+            <button class="ai-desktop-expand-btn" id="aiDesktopExpandBtn" type="button" onclick="toggleAiPanel()" title="向左展开助教" aria-label="向左展开助教" aria-expanded="false" aria-controls="aiPanelShell"><i class="fa-solid fa-chevron-left" id="aiExpandIcon" aria-hidden="true"></i></button>
+            <div class="ai-section" id="aiSection">
+                <button type="button" class="icon-btn ai-phone-expand-btn" id="aiPhoneExpandBtn" onclick="toggleAiExpanded()" aria-label="展开助教对话" title="展开助教对话" aria-expanded="false" aria-controls="aiMessages">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>
                 </button>
+
+                <div class="ai-hd">
+                    <div class="ai-hd-title">
+                        <i class="fa-solid fa-wand-magic-sparkles" style="color:var(--purple)"></i>
+                        <span>AI 学习助教</span>
+                        <span class="ai-badge">（双击空白展开阅读）</span>
+                    </div>
+                    <div class="ai-hd-actions">
+                        <div class="font-sizer" title="调节助教字体大小">
+                            <button class="font-btn" onclick="adjustAiFontSize(-1)">A-</button>
+                            <span class="font-disp" id="aiFontSizeDisplay">20px</span>
+                            <button class="font-btn" onclick="adjustAiFontSize(1)">A+</button>
+                        </div>
+                        <button class="icon-btn" onclick="clearAiChat()" title="清空对话记录">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chat messages area -->
+                <div class="ai-messages" id="aiMessages">
+                    <div class="ai-welcome-card" id="aiWelcomeCard" data-ai-welcome="true">
+                        <button class="welcome-close" onclick="dismissAiWelcome()" aria-label="关闭提示" title="关闭提示">×</button>
+                        <h4><i class="fa-solid fa-lightbulb" style="color:var(--amber)"></i> 智能字幕助学</h4>
+                        在左侧字幕列表勾选任意句子，它们会自动被送入下方的提问框。<br>
+                        你可以让大模型为你深度剖析<strong>长难句语法</strong>、<strong>地道习语</strong>或<strong>结合全集背景回答问题</strong>。
+                    </div>
+                </div>
+
+                <!-- AI Input & Context panel -->
+                <div class="ai-input-panel">
+                    <div class="selected-quotes-bar" id="selectedQuotesBar" style="display:none">
+                        <span><i class="fa-solid fa-quote-left"></i> 已勾选 <strong id="selQuotesCount">0</strong> 句字幕</span>
+                        <button class="clear-quotes-btn" onclick="clearSelectedCues()"><i class="fa-solid fa-xmark"></i> 取消勾选</button>
+                    </div>
+                    <div class="ai-quick-tags">
+                        <button class="qtag" disabled onclick="quickAsk('🌸 假名/敬语')">🌸 假名/敬语</button>
+                        <button class="qtag" disabled onclick="quickAsk('语法拆解')">📖 语法拆解</button>
+                        <button class="qtag" disabled onclick="quickAsk('地道用法')">🗣️ 地道用法</button>
+                        <button class="qtag" disabled onclick="quickAsk('文化背景')">🗾 文化背景</button>
+                        <button class="qtag" disabled onclick="quickAsk('总结本集')">📝 总结本集</button>
+                    </div>
+                    <div class="ai-input-row">
+                        <textarea id="aiInput" aria-label="向 AI 助教提问" onkeydown="handleAiKey(event)"></textarea>
+                        <button class="ai-send-btn" id="aiSendBtn" disabled onclick="sendAiQuestion()" title="提问">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
-        </div>
+            </div>
+        </section>
     </div>
-    </div>
-</section>
+</div>
 
 <!-- Dictionary popup -->
 <div id="dictPopup" style="display:none">
