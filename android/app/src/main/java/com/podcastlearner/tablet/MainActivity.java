@@ -189,11 +189,18 @@ public class MainActivity extends Activity {
     }
     private void showError(String text) {splash.animate().cancel();splash.setAlpha(1);splash.setVisibility(View.VISIBLE);loading.setVisibility(View.GONE);status.setVisibility(View.VISIBLE);status.setText(text);retry.setVisibility(View.VISIBLE);}
     @Override public void onBackPressed() {
-        web.evaluateJavascript("(function(){var d=document.getElementById('settingsDialog');if(d&&d.open){closeSettings();return true;}if(document.getElementById('colLeft').classList.contains('collapsed')||document.getElementById('tab-plaza').style.display==='none'){showTab('plaza');expandSidebar();return true;}return false;})()",handled -> {
-            if (!destroyed && "false".equals(handled) && getResources().getConfiguration().smallestScreenWidthDp < 600) {
-                moveTaskToBack(true);
-            }
-        });
+        web.evaluateJavascript("(function(){\n" +
+            "    var s = document.getElementById('settingsDialog');\n" +
+            "    if (s && s.open) { closeSettings(); return true; }\n" +
+            "    var c = document.getElementById('categoryRow');\n" +
+            "    if (c && c.classList.contains('open')) { closeMobileCatDrawer(); return true; }\n" +
+            "    if (typeof currentView !== 'undefined' && currentView === 'player') { showView('home'); return true; }\n" +
+            "    return false;\n" +
+            "})()", handled -> {
+                if (!destroyed && "false".equals(handled) && getResources().getConfiguration().smallestScreenWidthDp < 600) {
+                    moveTaskToBack(true);
+                }
+            });
     }
     @Override protected void onDestroy() {
         destroyed=true;

@@ -1358,11 +1358,10 @@ body.android-runtime .android-only{display:inline-flex!important}
 }
 .phone-toolbar,.phone-scrim{display:none}
 @media(max-width:600px){
-    body{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:44px minmax(0,1.4fr) minmax(0,1fr);height:100dvh}
-    .phone-toolbar{display:flex;grid-row:1;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:1px solid var(--border);background:var(--panel-left-bg);font-size:14px;font-weight:600}
-    .phone-toolbar button{height:40px;min-width:44px;border:0;background:transparent;color:var(--purple-light);font-size:14px}
-    .col-mid{grid-row:2;width:100%;height:100%;border-right:0;min-height:0}
-    .col-right{grid-row:3;width:100%;height:100%;min-height:0;border-top:1px solid var(--border)}
+    body{display:flex;flex-direction:column;width:100vw;height:100dvh;overflow:hidden;}
+    .player-body{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;width:100%;}
+    .col-mid{width:100%;flex:1.2;min-height:0;border-right:0;display:flex;flex-direction:column;height:auto;}
+    .col-right{width:100%;flex:1;min-height:0;min-width:0;max-width:none;border-top:1px solid var(--border);border-left:0;display:flex;flex-direction:column;position:relative;flex-shrink:0;height:auto;}
     .col-right.ai-expanded .ai-panel-shell{width:100%;box-shadow:none}
     .ai-desktop-expand-btn{display:none}
     .col-left{position:fixed;top:44px;bottom:0;left:0;width:min(340px,88vw);height:calc(100dvh - 44px);z-index:92;box-shadow:12px 0 40px rgba(0,0,0,.5)}
@@ -1402,7 +1401,6 @@ body.android-runtime .android-only{display:inline-flex!important}
     .welcome-screen i{font-size:36px;margin-bottom:10px}
 }
 @media(max-width:600px) and (max-height:600px){
-    body{grid-template-rows:44px minmax(0,1fr) minmax(160px,1fr)}
     .mid-player-console .lp-loop-row,body.android-runtime .mid-player-console .lp-loop-row{display:none}
     .ai-input-panel{padding-bottom:12px}
 }
@@ -1418,9 +1416,8 @@ body.android-runtime .android-only{display:inline-flex!important}
     .ai-phone-expand-btn svg{width:18px;height:18px;transition:transform .2s}
     .ai-phone-expand-btn[aria-expanded="true"] svg{transform:rotate(180deg)}
     .ai-badge{display:inline;font-size:10px;color:var(--purple-light);font-weight:400;background:none;border:0;padding:0}
-    body.ai-expanded{grid-template-rows:44px minmax(0,1fr)}
-    body.ai-expanded .col-mid{display:none}
-    body.ai-expanded .col-right{grid-row:2}
+    body.ai-expanded .col-mid{display:none !important;}
+    body.ai-expanded .col-right{flex:1 !important;height:100% !important;}
     body.ai-expanded .ai-messages::after{content:'';display:block;flex-shrink:0;height:var(--ai-reading-space,0px)}
     .ai-section{touch-action:manipulation}
     .ai-messages{min-height:0;overscroll-behavior:contain}
@@ -2087,24 +2084,9 @@ body.android-runtime .android-only{display:inline-flex!important}
                     </h1>
                     <div style="font-size:12px; color:var(--text2); margin-top:4px;">数据实时同步自 Apple Podcasts Japan 官方榜单</div>
                 </div>
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <button class="mobile-cat-trigger-btn" onclick="toggleMobileCatDrawer()">
-                        <i class="fa-solid fa-bars-staggered"></i> 分类榜单
-                    </button>
-                    <span class="result-count-badge" id="resultCountBadge" style="font-size:12px; padding:4px 12px; border-radius:20px; background:rgba(168,85,247,0.15); color:var(--purple-light); border:1px solid rgba(168,85,247,0.3);">
-                        Top 100 榜单
-                    </span>
-                </div>
-            </div>
-
-            <!-- Presets Row -->
-            <div class="preset-row" style="display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap;">
-                <div class="chip" onclick="preset('Bilingual News')">Bilingual News</div>
-                <div class="chip" onclick="preset('コテンラジオ')">コテンラジオ</div>
-                <div class="chip" onclick="preset('LISTEN')">LISTEN</div>
-                <div class="chip" onclick="preset('日本語教育')">日本語教育</div>
-                <div class="chip" onclick="preset('NHK ラジオ')">NHK ニュース</div>
-                <div class="chip" onclick="preset('Over the Sun')">Over the Sun</div>
+                <span class="result-count-badge" id="resultCountBadge" style="font-size:12px; padding:4px 12px; border-radius:20px; background:rgba(168,85,247,0.15); color:var(--purple-light); border:1px solid rgba(168,85,247,0.3);">
+                    Top 100 榜单
+                </span>
             </div>
 
             <!-- Plaza Content: Podcasts Grid or Channel Episode List -->
@@ -2805,11 +2787,11 @@ function showTab(tab) {
     if (tab === 'notebook') openNotebookModal();
 }
 
-function toggleMobileCatDrawer() {
+function openMobileCatDrawer() {
     const sidebar = document.getElementById('categoryRow');
     const scrim = document.getElementById('catDrawerScrim');
-    if (sidebar) sidebar.classList.toggle('open');
-    if (scrim) scrim.classList.toggle('open');
+    if (sidebar) sidebar.classList.add('open');
+    if (scrim) scrim.classList.add('open');
 }
 function closeMobileCatDrawer() {
     const sidebar = document.getElementById('categoryRow');
@@ -2817,6 +2799,46 @@ function closeMobileCatDrawer() {
     if (sidebar) sidebar.classList.remove('open');
     if (scrim) scrim.classList.remove('open');
 }
+function toggleMobileCatDrawer() {
+    const sidebar = document.getElementById('categoryRow');
+    if (sidebar && sidebar.classList.contains('open')) closeMobileCatDrawer();
+    else openMobileCatDrawer();
+}
+
+let touchStartX = 0;
+let touchStartY = 0;
+
+window.addEventListener('touchstart', (e) => {
+    if (!e.touches || e.touches.length !== 1) return;
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+window.addEventListener('touchend', (e) => {
+    if (!e.changedTouches || e.changedTouches.length === 0) return;
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+    const deltaX = endX - touchStartX;
+    const deltaY = endY - touchStartY;
+    const sidebar = document.getElementById('categoryRow');
+    if (!sidebar) return;
+
+    const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 30;
+
+    if (isHorizontalSwipe) {
+        if (deltaX > 0) {
+            // Swipe right: open category drawer if touch started on left side of screen
+            if (touchStartX <= Math.max(140, window.innerWidth * 0.35)) {
+                openMobileCatDrawer();
+            }
+        } else {
+            // Swipe left: close category drawer if open
+            if (sidebar.classList.contains('open')) {
+                closeMobileCatDrawer();
+            }
+        }
+    }
+}, { passive: true });
 
 function switchCategory(genreId, label, el) {
     currentCategory = genreId;
