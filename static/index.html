@@ -24,8 +24,8 @@
     --text2: #94a3b8;
     --text3: #475569;
     --border: rgba(255,255,255,0.08);
-    --sub-font-size: 13.5px;
-    --ai-font-size: 12.5px;
+    --sub-font-size: 20px;
+    --ai-font-size: 20px;
     --panel-header-height: 52px;
 }
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Helvetica,Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
@@ -882,7 +882,7 @@ rt{font-size:0.62em;color:var(--purple-light,#c084fc);font-weight:500;user-selec
     border: 1px dashed rgba(168,85,247,0.3);
     border-radius: 12px;
     padding: 14px 40px 14px 14px;
-    font-size: var(--ai-font-size, 12px);
+    font-size: var(--ai-font-size, 20px);
     line-height: 1.6;
     color: var(--text2);
 }
@@ -890,7 +890,7 @@ rt{font-size:0.62em;color:var(--purple-light,#c084fc);font-weight:500;user-selec
 .welcome-close:hover { color:var(--text); background:var(--card-hover); }
 .qtag:disabled { opacity:.4; cursor:not-allowed; }
 .ai-welcome-card h4 {
-    font-size: calc(var(--ai-font-size, 12.5px) + 0.5px);
+    font-size: calc(var(--ai-font-size, 20px) + 0.5px);
     color: #fff;
     margin-bottom: 6px;
     display: flex;
@@ -912,7 +912,7 @@ rt{font-size:0.62em;color:var(--purple-light,#c084fc);font-weight:500;user-selec
 .msg-bubble {
     padding: 10px 13px;
     border-radius: 12px;
-    font-size: var(--ai-font-size, 12.5px);
+    font-size: var(--ai-font-size, 20px);
     line-height: 1.65;
     word-break: break-word;
     white-space: pre-wrap;
@@ -1358,7 +1358,7 @@ body.android-runtime .android-only{display:inline-flex!important}
             <!-- Font Sizer -->
             <div class="font-sizer" title="调节字幕字体大小">
                 <button class="font-btn" onclick="adjustFontSize(-1)">A-</button>
-                <span class="font-disp" id="fontSizeDisplay">13.5px</span>
+                <span class="font-disp" id="fontSizeDisplay">20px</span>
                 <button class="font-btn" onclick="adjustFontSize(1)">A+</button>
             </div>
             <button class="refresh-btn" id="refreshBtn" onclick="triggerAiTranscribe(false, !subtitlesComplete)">
@@ -1469,7 +1469,7 @@ body.android-runtime .android-only{display:inline-flex!important}
             <div class="ai-hd-actions">
                 <div class="font-sizer" title="调节助教字体大小">
                     <button class="font-btn" onclick="adjustAiFontSize(-1)">A-</button>
-                    <span class="font-disp" id="aiFontSizeDisplay">12.5px</span>
+                    <span class="font-disp" id="aiFontSizeDisplay">20px</span>
                     <button class="font-btn" onclick="adjustAiFontSize(1)">A+</button>
                 </div>
                 <button class="icon-btn" onclick="clearAiChat()" title="清空对话记录">
@@ -1835,8 +1835,8 @@ let cueSelectionVersions = new Map();
 let cueSelectionRevision = 0;
 
 // Font Size
-let currentSubFontSize = parseFloat(localStorage.getItem('sub_font_size') || '13.5');
-let currentAiFontSize = parseFloat(localStorage.getItem('ai_font_size') || '12.5');
+let currentSubFontSize = parseFloat(localStorage.getItem('sub_font_size') || '20');
+let currentAiFontSize = parseFloat(localStorage.getItem('ai_font_size') || '20');
 
 // A-B
 let loopA = null, loopB = null, loopOn = false;
