@@ -3263,8 +3263,10 @@ function startPlay(url, title, author, cover, transcriptUrl, description) {
     clearLoop();
 
     audio.pause();
+    const newSrc = isAndroidPlayback() ? androidAudioSource(url) : url;
     audio.preload = 'auto';
-    audio.src = isAndroidPlayback() ? androidAudioSource(url) : url;
+    audio.src = newSrc;
+    audio.load();
     audio.playbackRate = speed;
     audio.volume = lastVolume;
     
@@ -3283,13 +3285,14 @@ function androidAudioSource(url) {
 
 function ensureAndroidAudioSource() {
     if (!isAndroidPlayback() || !nowPlaying) return;
-    const source = androidAudioSource(nowPlaying.url);
-    if ((audio.getAttribute ? audio.getAttribute('src') : audio.src) === source) return;
+    const targetSrc = androidAudioSource(nowPlaying.url);
+    const currentSrc = audio.getAttribute('src') || audio.src || '';
+    if (currentSrc.endsWith(targetSrc) || currentSrc === targetSrc) return;
     const position = androidRestorePosition ?? audio.currentTime;
     audio.pause();
-    audio.src = source;
+    audio.src = targetSrc;
+    audio.load();
     androidRestorePosition = position;
-    audio.currentTime = position;
     audio.playbackRate = speed;
 }
 
@@ -3300,7 +3303,9 @@ function canPlayWithSubtitles() {
 async function playWhenReady() {
     if (!wantsPlayback || !nowPlaying || playbackEnded) return;
     waitingForSubtitles = false;
-    if (androidRestorePosition !== null) audio.currentTime = androidRestorePosition;
+    if (androidRestorePosition !== null && audio.readyState >= 1) {
+        audio.currentTime = androidRestorePosition;
+    }
     audio.playbackRate = speed;
     if (!audio.paused) return;
     const request = subtitleRequest;
@@ -3628,10 +3633,21 @@ function triggerAiTranscribe(auto = false, resume = false) {
                 playWhenReady();
             } else if (data.status === 'audio_source') {
                 if (isAndroidPlayback()) ensureAndroidAudioSource();
-                else if (data.audio_url && audio.currentTime === 0 && audio.paused
-                    && (audio.getAttribute ? audio.getAttribute('src') : audio.src) !== data.audio_url) audio.src = data.audio_url;
+                else if (data.audio_url && audio.currentTime === 0 && audio.paused) {
+                    const cur = audio.getAttribute('src') || audio.src || '';
+                    if (!cur.endsWith(data.audio_url) && cur !== data.audio_url) {
+                        audio.src = data.audio_url;
+                        audio.load();
+                    }
+                }
             } else if (data.status === 'audio_ready') {
-                if (!isAndroidPlayback() && data.local_audio && audio.currentTime === 0 && audio.paused) audio.src = data.local_audio;
+                if (!isAndroidPlayback() && data.local_audio && audio.currentTime === 0 && audio.paused) {
+                    const cur = audio.getAttribute('src') || audio.src || '';
+                    if (!cur.endsWith(data.local_audio) && cur !== data.local_audio) {
+                        audio.src = data.local_audio;
+                        audio.load();
+                    }
+                }
                 audio.playbackRate = speed;
             } else if (data.status === 'progress') {
                 setBadge(data.detail, 'rgba(168,85,247,.15)', '#c084fc', 'rgba(168,85,247,.3)');
