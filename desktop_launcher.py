@@ -1,5 +1,5 @@
 """
-Desktop App Entry Point for Podcast Learner Japan
+Desktop App Entry Point for Podcast Learner Japan (Native Windows Desktop App)
 """
 import sys
 import os
@@ -7,9 +7,8 @@ import time
 import socket
 import threading
 import urllib.request
-import webbrowser
 
-# Fix PyInstaller --windowed mode where sys.stdout/stderr and sys.__stdout__/__stderr__ are None
+# Fix PyInstaller --windowed mode stdout/stderr stream wrappers
 class NullStream:
     def write(self, data):
         pass
@@ -23,6 +22,9 @@ for stream_name in ('stdout', 'stderr', '__stdout__', '__stderr__'):
         setattr(sys, stream_name, NullStream())
 
 import uvicorn
+from PyQt5.QtCore import QUrl
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWebEngineWidgets import QWebEngineView
 
 # Ensure working directory is set to the directory containing the executable / script
 if getattr(sys, 'frozen', False):
@@ -45,28 +47,7 @@ def is_our_app_running(port):
     except Exception:
         return False
 
-def open_browser(port):
-    time.sleep(1.0)
-    webbrowser.open(f"http://127.0.0.1:{port}")
-
-def main():
-    default_port = 8557
-    
-    # 1. If app is already running on default_port, open browser and exit gracefully
-    if is_our_app_running(default_port):
-        webbrowser.open(f"http://127.0.0.1:{default_port}")
-        sys.exit(0)
-        
-    # 2. Find an available port starting from default_port
-    port = default_port
-    while is_port_in_use(port):
-        port += 1
-        if port > default_port + 10:
-            break
-            
-    threading.Thread(target=open_browser, args=(port,), daemon=True).start()
-
-    # Custom log config that uses standard logging.Formatter to avoid uvicorn.logging.DefaultFormatter sys.stdout.isatty() crash in PyInstaller --windowed
+def start_server(port):
     custom_log_config = {
         "version": 1,
         "disable_existing_loggers": False,
@@ -87,8 +68,33 @@ def main():
             "uvicorn.access": {"handlers": ["default"], "level": "ERROR"},
         },
     }
-
     uvicorn.run(app, host="127.0.0.1", port=port, log_config=custom_log_config)
+
+def main():
+    default_port = 8557
+    port = default_port
+    
+    # 1. Start uvicorn server in a daemon thread if not already running
+    if not is_our_app_running(default_port):
+        while is_port_in_use(port):
+            port += 1
+            if port > default_port + 10:
+                break
+        t = threading.Thread(target=start_server, args=(port,), daemon=True)
+        t.start()
+        time.sleep(0.6)
+
+    # 2. Launch Native Windows Desktop Window using PyQt5 QWebEngineView
+    q_app = QApplication(sys.argv)
+    q_app.setApplicationName("Podcast Learner Japan")
+    
+    view = QWebEngineView()
+    view.setWindowTitle("Podcast Learner Japan")
+    view.resize(1280, 820)
+    view.load(QUrl(f"http://127.0.0.1:{port}"))
+    view.show()
+    
+    sys.exit(q_app.exec_())
 
 if __name__ == "__main__":
     main()
