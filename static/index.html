@@ -1430,61 +1430,139 @@ body.android-runtime .android-only{display:inline-flex!important}
 </head>
 <body>
 
-<!-- VIEW 1: HOMEPAGE (播客广场 首页) -->
+<!-- VIEW 1: HOMEPAGE (PodFollow Japan 播客广场 首页) -->
 <div class="page-view" id="homeView">
     <!-- Top Header Bar -->
     <header class="home-header">
-        <div class="home-logo">
-            <i class="fa-solid fa-headphones-simple" style="color:var(--purple);font-size:24px;"></i>
-            <span>Podcast Learner Japan</span>
-            <span class="logo-sub-badge">日语播客 AI 学习广场</span>
+        <div class="home-logo" onclick="loadTopCharts('jp')" style="cursor:pointer">
+            <div style="width:36px;height:36px;border-radius:10px;background:var(--grad);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;box-shadow:0 4px 14px rgba(168,85,247,0.35);">
+                <i class="fa-solid fa-chart-line"></i>
+            </div>
+            <span>PodFollow Japan</span>
+            <span class="logo-sub-badge">🇯🇵 日本 Top 100</span>
         </div>
+
         <div class="home-search-wrap">
-            <input type="text" id="searchInput" placeholder="搜索日语播客频道、关键字或粘贴 RSS 链接..." onkeydown="handleKey(event)">
+            <input type="text" id="searchInput" placeholder="搜索日本播客名称、主播或粘贴 RSS 链接..." onkeydown="handleKey(event)">
             <button onclick="doSearch()"><i class="fa-solid fa-magnifying-glass"></i> 搜索</button>
         </div>
+
         <div class="home-nav-actions">
             <button class="home-nav-btn" onclick="openNotebookModal()"><i class="fa-solid fa-bookmark" style="color:var(--purple-light)"></i> 笔记本 (<span id="nbCount">0</span>)</button>
             <button class="home-nav-btn" onclick="openSettings()"><i class="fa-solid fa-gear"></i> 设置</button>
         </div>
     </header>
 
-    <!-- Categories & Presets Row -->
-    <div class="home-category-bar">
-        <div class="category-chip-row" id="categoryRow" style="display:flex; gap:6px; overflow-x:auto; padding-bottom:4px;">
-            <button class="rbtn active" onclick="switchCategory('26', '総合 Top 100', this)">総合 Top 100</button>
-            <button class="rbtn" onclick="switchCategory('1453', '語学学習', this)">語学学習</button>
-            <button class="rbtn" onclick="switchCategory('1304', '教育', this)">教育</button>
-            <button class="rbtn" onclick="switchCategory('1489', 'ニュース', this)">ニュース</button>
-            <button class="rbtn" onclick="switchCategory('1303', 'コメディ', this)">コメディ</button>
-            <button class="rbtn" onclick="switchCategory('1321', 'ビジネス', this)">ビジネス</button>
-            <button class="rbtn" onclick="switchCategory('1412', '投資', this)">投資</button>
-            <button class="rbtn" onclick="switchCategory('1318', 'テクノロジー', this)">テクノロジー</button>
-            <button class="rbtn" onclick="switchCategory('1482', 'アニメ・漫画', this)">アニメ・漫画</button>
-            <button class="rbtn" onclick="switchCategory('1324', '社会・文化', this)">社会・文化</button>
-            <button class="rbtn" onclick="switchCategory('1301', 'アート', this)">アート</button>
-            <button class="rbtn" onclick="switchCategory('1305', '健康', this)">健康</button>
-            <button class="rbtn" onclick="switchCategory('1315', '科学', this)">科学</button>
-            <button class="rbtn" onclick="switchCategory('1487', '歴史', this)">歴史</button>
-            <button class="rbtn" onclick="switchCategory('1488', '犯罪', this)">犯罪</button>
-            <button class="rbtn" onclick="switchCategory('1477', 'スポーツ', this)">スポーツ</button>
-            <button class="rbtn" onclick="switchCategory('1310', '音楽', this)">音楽</button>
-            <button class="rbtn" onclick="switchCategory('1309', '映画・TV', this)">映画・TV</button>
-        </div>
-        <div class="preset-row">
-            <div class="chip" onclick="preset('Bilingual News')">Bilingual News</div>
-            <div class="chip" onclick="preset('コテンラジオ')">コテンラジオ</div>
-            <div class="chip" onclick="preset('LISTEN')">LISTEN</div>
-            <div class="chip" onclick="preset('日本語教育')">日本語教育</div>
-            <div class="chip" onclick="preset('NHK ラジオ')">NHK ニュース</div>
-            <div class="chip" onclick="preset('Over the Sun')">Over the Sun</div>
-        </div>
-    </div>
+    <!-- PodFollow Main Layout: Left Category Sidebar + Right Content Area -->
+    <div class="main-layout" style="display:flex; flex:1; overflow:hidden; width:100%;">
+        <!-- Sidebar Categories -->
+        <aside class="category-sidebar" id="categoryRow">
+            <div class="sidebar-title">日本 Apple 分类榜单</div>
+            
+            <div class="cat-item active" onclick="switchCategory('26', '総合 Top 100', this)">
+                <i class="fa-solid fa-trophy" style="color:#f59e0b"></i>
+                <span>総合 Top 100</span>
+            </div>
+            <div class="cat-item" onclick="switchCategory('1453', '語学学習 (Language Learning)', this)">
+                <i class="fa-solid fa-language" style="color:#c084fc"></i>
+                <span>語学学習 (Languages)</span>
+            </div>
+            <div class="cat-item" onclick="switchCategory('1304', '教育 (Education)', this)">
+                <i class="fa-solid fa-graduation-cap" style="color:#60a5fa"></i>
+                <span>教育 (Education)</span>
+            </div>
+            <div class="cat-item" onclick="switchCategory('1489', 'ニュース (News)', this)">
+                <i class="fa-solid fa-newspaper" style="color:#f87171"></i>
+                <span>ニュース (News)</span>
+            </div>
+            <div class="cat-item" onclick="switchCategory('1303', 'コメディ (Comedy)', this)">
+                <i class="fa-solid fa-face-laugh-beam" style="color:#fbbf24"></i>
+                <span>コメディ (Comedy)</span>
+            </div>
+            <div class="cat-item" onclick="switchCategory('1321', 'ビジネス (Business)', this)">
+                <i class="fa-solid fa-briefcase" style="color:#34d399"></i>
+                <span>ビジネス (Business)</span>
+            </div>
+            <div class="cat-item" onclick="switchCategory('1412', '投資・マネー (Investing)', this)">
+                <i class="fa-solid fa-chart-pie" style="color:#10b981"></i>
+                <span>投資・マネー (Investing)</span>
+            </div>
+            <div class="cat-item" onclick="switchCategory('1318', 'テクノロジー (Technology)', this)">
+                <i class="fa-solid fa-laptop-code" style="color:#38bdf8"></i>
+                <span>テクノロジー (Tech)</span>
+            </div>
+            <div class="cat-item" onclick="switchCategory('1482', 'アニメ・漫画 (Anime & Manga)', this)">
+                <i class="fa-solid fa-wand-magic-sparkles" style="color:#f472b6"></i>
+                <span>アニメ・漫画 (Anime)</span>
+            </div>
+            <div class="cat-item" onclick="switchCategory('1324', '社会・文化 (Society & Culture)', this)">
+                <i class="fa-solid fa-users" style="color:#a78bfa"></i>
+                <span>社会与文化</span>
+            </div>
+            <div class="cat-item" onclick="switchCategory('1301', 'アート (Arts)', this)">
+                <i class="fa-solid fa-palette" style="color:#fb7185"></i>
+                <span>アート (Arts)</span>
+            </div>
+            <div class="cat-item" onclick="switchCategory('1305', '健康・心理 (Health)', this)">
+                <i class="fa-solid fa-heart-pulse" style="color:#4ade80"></i>
+                <span>健康・心理 (Health)</span>
+            </div>
+            <div class="cat-item" onclick="switchCategory('1315', '科学 (Science)', this)">
+                <i class="fa-solid fa-flask" style="color:#818cf8"></i>
+                <span>科学 (Science)</span>
+            </div>
+            <div class="cat-item" onclick="switchCategory('1487', '歴史 (History)', this)">
+                <i class="fa-solid fa-landmark" style="color:#fb923c"></i>
+                <span>歴史 (History)</span>
+            </div>
+            <div class="cat-item" onclick="switchCategory('1488', '犯罪・事件 (True Crime)', this)">
+                <i class="fa-solid fa-user-ninja" style="color:#e879f9"></i>
+                <span>犯罪・事件 (Crime)</span>
+            </div>
+            <div class="cat-item" onclick="switchCategory('1477', 'スポーツ (Sports)', this)">
+                <i class="fa-solid fa-baseball-bat-ball" style="color:#facc15"></i>
+                <span>スポーツ (Sports)</span>
+            </div>
+            <div class="cat-item" onclick="switchCategory('1310', '音楽 (Music)', this)">
+                <i class="fa-solid fa-music" style="color:#2dd4bf"></i>
+                <span>音楽 (Music)</span>
+            </div>
+            <div class="cat-item" onclick="switchCategory('1309', '映画・TV (Film)', this)">
+                <i class="fa-solid fa-film" style="color:#f43f5e"></i>
+                <span>映画・TV (Film)</span>
+            </div>
+        </aside>
 
-    <!-- Main Plaza Content: Podcasts Grid or Channel Episode View -->
-    <main class="home-content" id="plazaContent">
-        <div class="spinner"></div>
-    </main>
+        <!-- Right Content Area -->
+        <main class="content-area" style="flex:1; overflow-y:auto; padding:24px 32px 80px;">
+            <div class="chart-header" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+                <div>
+                    <h1 id="chartTitle" style="font-size:22px; font-weight:700; display:flex; align-items:center; gap:10px;">
+                        <i class="fa-solid fa-trophy" style="color:var(--amber)"></i> 日本 総合 Top 100
+                    </h1>
+                    <div style="font-size:12px; color:var(--text2); margin-top:4px;">数据实时同步自 Apple Podcasts Japan 官方榜单</div>
+                </div>
+                <span class="result-count-badge" id="resultCountBadge" style="font-size:12px; padding:4px 12px; border-radius:20px; background:rgba(168,85,247,0.15); color:var(--purple-light); border:1px solid rgba(168,85,247,0.3);">
+                    Top 100 榜单
+                </span>
+            </div>
+
+            <!-- Presets Row -->
+            <div class="preset-row" style="display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap;">
+                <div class="chip" onclick="preset('Bilingual News')">Bilingual News</div>
+                <div class="chip" onclick="preset('コテンラジオ')">コテンラジオ</div>
+                <div class="chip" onclick="preset('LISTEN')">LISTEN</div>
+                <div class="chip" onclick="preset('日本語教育')">日本語教育</div>
+                <div class="chip" onclick="preset('NHK ラジオ')">NHK ニュース</div>
+                <div class="chip" onclick="preset('Over the Sun')">Over the Sun</div>
+            </div>
+
+            <!-- Plaza Content: Podcasts Grid or Channel Episode List -->
+            <div id="plazaContent">
+                <div class="spinner"></div>
+            </div>
+        </main>
+    </div>
 
     <!-- Floating Mini Player on Homepage -->
     <div class="home-mini-player" id="homeMiniPlayer" style="display:none">
@@ -2169,7 +2247,7 @@ function showTab(tab) {
 function switchCategory(genreId, label, el) {
     currentCategory = genreId;
     currentCategoryLabel = label;
-    document.querySelectorAll('#categoryRow .rbtn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#categoryRow .rbtn, #categoryRow .cat-item').forEach(b => b.classList.remove('active'));
     if (el) el.classList.add('active');
     loadCategoryCharts(genreId, label);
 }
