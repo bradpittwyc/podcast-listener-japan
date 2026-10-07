@@ -8,6 +8,20 @@ import socket
 import threading
 import urllib.request
 import webbrowser
+
+# Fix PyInstaller --windowed mode where sys.stdout/stderr and sys.__stdout__/__stderr__ are None
+class NullStream:
+    def write(self, data):
+        pass
+    def flush(self):
+        pass
+    def isatty(self):
+        return False
+
+for stream_name in ('stdout', 'stderr', '__stdout__', '__stderr__'):
+    if getattr(sys, stream_name, None) is None:
+        setattr(sys, stream_name, NullStream())
+
 import uvicorn
 
 # Ensure working directory is set to the directory containing the executable / script
@@ -51,8 +65,30 @@ def main():
             break
             
     threading.Thread(target=open_browser, args=(port,), daemon=True).start()
-    print(f"Starting Podcast Learner Japan on http://127.0.0.1:{port} ...")
-    uvicorn.run(app, host="127.0.0.1", port=port, log_level="error")
+
+    # Custom log config that uses standard logging.Formatter to avoid uvicorn.logging.DefaultFormatter sys.stdout.isatty() crash in PyInstaller --windowed
+    custom_log_config = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "default": {
+                "format": "%(asctime)s [%(levelname)s] %(message)s",
+            },
+        },
+        "handlers": {
+            "default": {
+                "formatter": "default",
+                "class": "logging.NullHandler",
+            },
+        },
+        "loggers": {
+            "uvicorn": {"handlers": ["default"], "level": "ERROR"},
+            "uvicorn.error": {"level": "ERROR"},
+            "uvicorn.access": {"handlers": ["default"], "level": "ERROR"},
+        },
+    }
+
+    uvicorn.run(app, host="127.0.0.1", port=port, log_config=custom_log_config)
 
 if __name__ == "__main__":
     main()
