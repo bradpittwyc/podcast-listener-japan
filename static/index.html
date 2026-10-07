@@ -25,6 +25,7 @@
     --text3: #475569;
     --border: rgba(255,255,255,0.08);
     --sub-font-size: 13.5px;
+    --ai-font-size: 12.5px;
     --panel-header-height: 52px;
 }
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Helvetica,Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
@@ -881,7 +882,7 @@ rt{font-size:0.62em;color:var(--purple-light,#c084fc);font-weight:500;user-selec
     border: 1px dashed rgba(168,85,247,0.3);
     border-radius: 12px;
     padding: 14px 40px 14px 14px;
-    font-size: 12px;
+    font-size: var(--ai-font-size, 12px);
     line-height: 1.6;
     color: var(--text2);
 }
@@ -889,7 +890,7 @@ rt{font-size:0.62em;color:var(--purple-light,#c084fc);font-weight:500;user-selec
 .welcome-close:hover { color:var(--text); background:var(--card-hover); }
 .qtag:disabled { opacity:.4; cursor:not-allowed; }
 .ai-welcome-card h4 {
-    font-size: 13px;
+    font-size: calc(var(--ai-font-size, 12.5px) + 0.5px);
     color: #fff;
     margin-bottom: 6px;
     display: flex;
@@ -911,7 +912,7 @@ rt{font-size:0.62em;color:var(--purple-light,#c084fc);font-weight:500;user-selec
 .msg-bubble {
     padding: 10px 13px;
     border-radius: 12px;
-    font-size: 12.5px;
+    font-size: var(--ai-font-size, 12.5px);
     line-height: 1.65;
     word-break: break-word;
     white-space: pre-wrap;
@@ -1466,6 +1467,11 @@ body.android-runtime .android-only{display:inline-flex!important}
                 <span class="ai-badge">（双击空白展开阅读）</span>
             </div>
             <div class="ai-hd-actions">
+                <div class="font-sizer" title="调节助教字体大小">
+                    <button class="font-btn" onclick="adjustAiFontSize(-1)">A-</button>
+                    <span class="font-disp" id="aiFontSizeDisplay">12.5px</span>
+                    <button class="font-btn" onclick="adjustAiFontSize(1)">A+</button>
+                </div>
                 <button class="icon-btn" onclick="clearAiChat()" title="清空对话记录">
                     <i class="fa-solid fa-trash-can"></i>
                 </button>
@@ -1830,6 +1836,7 @@ let cueSelectionRevision = 0;
 
 // Font Size
 let currentSubFontSize = parseFloat(localStorage.getItem('sub_font_size') || '13.5');
+let currentAiFontSize = parseFloat(localStorage.getItem('ai_font_size') || '12.5');
 
 // A-B
 let loopA = null, loopB = null, loopOn = false;
@@ -1910,6 +1917,18 @@ function applyFontSize() {
     document.documentElement.style.setProperty('--sub-font-size', currentSubFontSize + 'px');
     const disp = document.getElementById('fontSizeDisplay');
     if (disp) disp.textContent = currentSubFontSize + 'px';
+}
+
+function adjustAiFontSize(delta) {
+    currentAiFontSize = Math.min(22, Math.max(11, currentAiFontSize + delta));
+    localStorage.setItem('ai_font_size', currentAiFontSize);
+    applyAiFontSize();
+}
+
+function applyAiFontSize() {
+    document.documentElement.style.setProperty('--ai-font-size', currentAiFontSize + 'px');
+    const disp = document.getElementById('aiFontSizeDisplay');
+    if (disp) disp.textContent = currentAiFontSize + 'px';
 }
 
 function showTab(tab) {
@@ -3540,6 +3559,7 @@ window.onload = () => {
     loadNotebook();
     updateAiAvailability();
     applyFontSize();
+    applyAiFontSize();
     loadCategoryCharts('26', '総合 Top 100');
 };
 </script>
