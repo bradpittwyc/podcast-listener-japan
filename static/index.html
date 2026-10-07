@@ -2769,17 +2769,11 @@ function ensureAndroidAudioSource() {
 }
 
 function canPlayWithSubtitles() {
-    if (!isTranscribing && !subtitlesComplete && !cues.length && !subtitleTranslationEnabled) return true;
-    return cues.length > 0 && (subtitlesComplete || (androidRestorePosition ?? audio.currentTime) < coveredUntil);
+    return true;
 }
 
 async function playWhenReady() {
     if (!wantsPlayback || !nowPlaying || playbackEnded) return;
-    if (!canPlayWithSubtitles()) {
-        waitingForSubtitles = true;
-        audio.pause();
-        return;
-    }
     waitingForSubtitles = false;
     if (androidRestorePosition !== null) audio.currentTime = androidRestorePosition;
     audio.playbackRate = speed;
@@ -2792,7 +2786,6 @@ async function playWhenReady() {
         if (audio.error?.code === 2) { scheduleAudioRecovery(); return; }
         wantsPlayback = false;
         setPlayIcon(false);
-        toast('字幕已就绪，请点击播放按钮开始收听。', 'info');
     }
 }
 
@@ -2805,7 +2798,7 @@ function togglePlay() {
         playWhenReady();
         return;
     }
-    if (!audio.paused || (waitingForSubtitles && wantsPlayback)) {
+    if (!audio.paused) {
         wantsPlayback = false;
         waitingForSubtitles = false;
         clearAudioRecovery();
@@ -2815,7 +2808,6 @@ function togglePlay() {
         wantsPlayback = true;
         if (audio.error) { audioRecoveryAttempts = 0; scheduleAudioRecovery(); return; }
         playWhenReady();
-        if (!canPlayWithSubtitles()) toast('等待当前位置的字幕，就绪后继续播放。', 'info');
     }
 }
 
@@ -2837,10 +2829,7 @@ function seekPlayback(position) {
 }
 function reconcilePlayback() {
     if (!nowPlaying || !wantsPlayback || playbackEnded) return;
-    if (!canPlayWithSubtitles()) {
-        waitingForSubtitles = true;
-        audio.pause();
-    } else if (waitingForSubtitles) {
+    if (audio.paused && wantsPlayback) {
         playWhenReady();
     }
 }
@@ -2857,7 +2846,6 @@ function seekAudio(e) {
 audio.ontimeupdate = () => {
     if (androidRestorePosition !== null && audio.currentTime >= androidRestorePosition - .1) androidRestorePosition = null;
     if (Date.now() - androidStateSavedAt > 2000) { saveAndroidPlaybackState(); androidStateSavedAt = Date.now(); }
-    // Apply the loop before deciding whether the final position needs subtitles.
     if (loopOn && loopA !== null && loopB !== null && audio.currentTime >= loopB) seekPlayback(loopA);
     reconcilePlayback();
     if (!Number.isFinite(audio.duration) || !audio.duration) return;
@@ -2869,12 +2857,6 @@ audio.ontimeupdate = () => {
     const tot = document.getElementById('pbTot');
     if (tot) tot.textContent = ft(audio.duration);
     syncSubs(audio.currentTime);
-    if (wantsPlayback && (isTranscribing || (cues.length > 0 && subtitleTranslationEnabled)) && !subtitlesComplete && audio.currentTime >= coveredUntil) {
-        waitingForSubtitles = true;
-        audio.pause();
-        setBadge(isTranscribing ? '等待后续字幕…' : '字幕未完成，请刷新重试', 'rgba(245,158,11,.15)', '#fbbf24', 'rgba(245,158,11,.3)');
-    }
-
 };
 audio.onseeked = () => reconcilePlayback();
 
