@@ -1427,18 +1427,211 @@ body.android-runtime .android-only{display:inline-flex!important}
     .ai-messages > *{flex-shrink:0}
 }
 
-/* PodFollow Homepage Grid & Rank Badges */
+/* ════════════════ APPLE PODCASTS FEATURED HERO BANNER ════════════════ */
+.featured-hero-banner {
+    width: 100%;
+    margin-bottom: 24px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(30, 20, 55, 0.95) 0%, rgba(15, 12, 30, 0.95) 100%);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: transform 0.25s ease, border-color 0.25s ease;
+}
+.featured-hero-banner:hover {
+    transform: translateY(-2px);
+    border-color: rgba(168, 85, 247, 0.6);
+}
+.featured-hero-bg {
+    position: absolute;
+    inset: -20px;
+    background-size: cover;
+    background-position: center;
+    filter: blur(40px) brightness(0.35);
+    opacity: 0.6;
+    z-index: 0;
+    pointer-events: none;
+}
+.featured-hero-cover {
+    width: 96px;
+    height: 96px;
+    border-radius: 16px;
+    object-fit: cover;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+}
+.featured-hero-info {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.featured-hero-badge {
+    align-self: flex-start;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+.featured-hero-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.featured-hero-artist {
+    font-size: 13px;
+    color: #c084fc;
+    font-weight: 500;
+}
+.featured-hero-action {
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+}
+.featured-hero-btn {
+    height: 40px;
+    padding: 0 20px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #a855f7, #6366f1);
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 16px rgba(168, 85, 247, 0.4);
+    transition: all 0.2s ease;
+}
+
+/* ════════════════ PLAZA CONTROLS BAR & VIEW SWITCHER ════════════════ */
+.plaza-controls-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.plaza-status-text {
+    font-size: 12px;
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.plaza-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.plaza-view-toggle {
+    display: flex;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 3px;
+}
+.plaza-view-btn {
+    padding: 5px 12px;
+    border-radius: 7px;
+    border: none;
+    background: transparent;
+    color: var(--text2);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s ease;
+}
+.plaza-view-btn.active {
+    background: linear-gradient(135deg, #a855f7, #6366f1);
+    color: white;
+    box-shadow: 0 2px 8px rgba(168, 85, 247, 0.3);
+}
+.plaza-refresh-btn {
+    padding: 6px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: rgba(168, 85, 247, 0.12);
+    color: var(--purple-light);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+.plaza-refresh-btn:hover {
+    background: rgba(168, 85, 247, 0.25);
+    color: white;
+}
+
+/* ════════════════ PODCAST GRID & LIST ════════════════ */
 .home-pod-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
     gap: 20px;
 }
-@media (max-width: 768px) {
-    .home-pod-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 14px;
-    }
+.home-pod-grid.view-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
+.home-pod-grid.view-list .home-pod-card {
+    flex-direction: row;
+    align-items: center;
+    padding: 10px 14px;
+    gap: 14px;
+    border-radius: 14px;
+}
+.home-pod-grid.view-list .rank-badge {
+    position: static;
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+    flex-shrink: 0;
+    box-shadow: none;
+}
+.home-pod-grid.view-list .cover-wrap {
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    border-radius: 10px;
+}
+.home-pod-grid.view-list .pod-info {
+    flex: 1;
+    min-width: 0;
+}
+.home-pod-grid.view-list .pod-title {
+    font-size: 14px;
+    -webkit-line-clamp: 1;
+}
+
 .home-pod-card {
     background: rgba(22, 18, 38, 0.7);
     border: 1px solid rgba(168, 85, 247, 0.18);
@@ -1619,16 +1812,57 @@ body.android-runtime .android-only{display:inline-flex!important}
     .category-sidebar {
         width: 100%;
         height: auto;
-        position: relative;
+        position: sticky;
         top: 0;
+        z-index: 15;
         flex-direction: row;
         overflow-x: auto;
-        padding: 12px 16px;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        padding: 10px 12px;
+        gap: 8px;
+        background: rgba(13, 13, 24, 0.96);
+        backdrop-filter: blur(16px);
         border-right: none;
-        border-bottom: 1px solid var(--border);
+        border-bottom: 1px solid rgba(168, 85, 247, 0.2);
     }
+    .category-sidebar::-webkit-scrollbar { display: none; }
     .sidebar-title { display: none; }
-    .cat-item { white-space: nowrap; flex-shrink: 0; }
+    .cat-item {
+        white-space: nowrap;
+        flex-shrink: 0;
+        scroll-snap-align: start;
+        padding: 8px 16px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        font-size: 13px;
+        font-weight: 600;
+    }
+    .cat-item.active {
+        background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+        border: none;
+        color: white;
+        box-shadow: 0 4px 14px rgba(168, 85, 247, 0.4);
+    }
+    .home-pod-grid:not(.view-list) {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    .featured-hero-banner {
+        padding: 14px 16px;
+        gap: 12px;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .featured-hero-cover {
+        width: 72px;
+        height: 72px;
+    }
+    .featured-hero-btn {
+        width: 100%;
+        justify-content: center;
+    }
 }
 </style>
 </head>
@@ -2495,7 +2729,31 @@ async function loadTopCharts(c = 'jp') {
     return loadCategoryCharts(currentCategory, currentCategoryLabel);
 }
 
+let plazaViewMode = localStorage.getItem('plaza_view_mode') || 'grid';
+let lastPlazaResults = [];
+
+function setPlazaViewMode(mode) {
+    plazaViewMode = mode;
+    localStorage.setItem('plaza_view_mode', mode);
+    const gridBtn = document.getElementById('plazaGridBtn');
+    const listBtn = document.getElementById('plazaListBtn');
+    if (gridBtn) gridBtn.classList.toggle('active', mode === 'grid');
+    if (listBtn) listBtn.classList.toggle('active', mode === 'list');
+    
+    const container = document.getElementById('homePodGrid');
+    if (container) {
+        if (mode === 'list') container.classList.add('view-list');
+        else container.classList.remove('view-list');
+    }
+}
+
+function refreshCurrentCategory() {
+    toast('正在同步最新 Apple Podcasts 日本榜单...', 'info');
+    loadCategoryCharts(currentCategory, currentCategoryLabel);
+}
+
 function renderTopCharts(results, label = 'Top 100') {
+    lastPlazaResults = results || [];
     const titleEl = document.getElementById('chartTitle');
     if (titleEl) {
         titleEl.innerHTML = `<i class="fa-solid fa-trophy" style="color:var(--amber)"></i> ${esc(label)}`;
@@ -2510,7 +2768,55 @@ function renderTopCharts(results, label = 'Top 100') {
         return;
     }
 
-    let h = '<div class="home-pod-grid">';
+    let h = '';
+    
+    // 1. Featured Top 1 Hero Banner (Apple Podcasts Style)
+    const top1 = results[0];
+    if (top1) {
+        const heroImg = hd(top1.artworkUrl600 || top1.artworkUrl100 || '');
+        const heroGenre = top1.primaryGenreName || (top1.genres && top1.genres[0]) || '日本热门';
+        h += `
+        <div class="featured-hero-banner" onclick="loadPodcast('${escHtml(String(top1.collectionId))}')">
+            <div class="featured-hero-bg" style="background-image: url('${escHtml(heroImg)}')"></div>
+            <img class="featured-hero-cover" src="${escHtml(heroImg)}" alt="${esc(top1.collectionName)}">
+            <div class="featured-hero-info">
+                <div class="featured-hero-badge"><i class="fa-solid fa-crown"></i> #1 本榜第一 · 今日推荐</div>
+                <div class="featured-hero-title">${esc(top1.collectionName)}</div>
+                <div class="featured-hero-artist">${esc(top1.artistName)} · ${esc(heroGenre)}</div>
+            </div>
+            <div class="featured-hero-action">
+                <button class="featured-hero-btn" onclick="event.stopPropagation(); loadPodcast('${escHtml(String(top1.collectionId))}')">
+                    <i class="fa-solid fa-play"></i> <span>开始学习</span>
+                </button>
+            </div>
+        </div>`;
+    }
+
+    // 2. Plaza Controls Bar (View Toggle + Status + Refresh)
+    const nowTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    h += `
+    <div class="plaza-controls-bar">
+        <div class="plaza-status-text">
+            <i class="fa-solid fa-circle-check" style="color:var(--green)"></i>
+            <span>数据同步自 Apple Japan 官方榜单 (${nowTime} 更新)</span>
+        </div>
+        <div class="plaza-actions-group">
+            <div class="plaza-view-toggle">
+                <button class="plaza-view-btn ${plazaViewMode === 'grid' ? 'active' : ''}" id="plazaGridBtn" onclick="setPlazaViewMode('grid')">
+                    <i class="fa-solid fa-border-all"></i> 双列
+                </button>
+                <button class="plaza-view-btn ${plazaViewMode === 'list' ? 'active' : ''}" id="plazaListBtn" onclick="setPlazaViewMode('list')">
+                    <i class="fa-solid fa-list-ul"></i> 列表
+                </button>
+            </div>
+            <button class="plaza-refresh-btn" onclick="refreshCurrentCategory()" title="刷新获取最新排名">
+                <i class="fa-solid fa-rotate-right"></i> 刷新
+            </button>
+        </div>
+    </div>`;
+
+    // 3. Grid / List Container
+    h += `<div class="home-pod-grid ${plazaViewMode === 'list' ? 'view-list' : ''}" id="homePodGrid">`;
     results.forEach((r, i) => {
         const rank = i + 1;
         let rankClass = '';
