@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+subtitle_cache/
+downloads/
+venv/
+.venv/
+.env
+.env-*
+android/.gradle/
+android/local.properties
+android/**/build/
+*.apk
+*.log
+.DS_Store
