@@ -9,6 +9,7 @@ import shutil
 import aliyun
 import corrections
 import subtitle_translation
+import furigana
 import cache_policy
 import urllib.parse
 import urllib.request
@@ -536,6 +537,21 @@ async def translate_subtitles(request: Request):
         return {"status": "error", "message": str(error)}
     except Exception:
         return {"status": "error", "message": "字幕翻译失败，请检查网络和翻译模型设置后点击双语字幕重试。"}
+
+
+@app.post("/api/furigana")
+async def api_furigana(request: Request):
+    try:
+        data = await request.json()
+        sentences = data.get("sentences", [])
+        if isinstance(data.get("text"), str) and data.get("text").strip():
+            sentences = [data["text"].strip()]
+        if not isinstance(sentences, list):
+            raise HTTPException(status_code=400, detail="sentences 必须为字符串数组。")
+        results = await asyncio.to_thread(furigana.batch_to_ruby, sentences)
+        return {"status": "success", "results": results}
+    except Exception as e:
+        return {"status": "error", "message": f"假名标注生成失败: {str(e)}"}
 
 
 def qwen_completion(prompt, json_output=True):

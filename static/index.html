@@ -641,6 +641,12 @@ body{display:flex;background:var(--bg);color:var(--text);width:100vw;height:100v
 .subtitle-translate-btn{border:1px solid rgba(168,85,247,.4);border-radius:7px;background:rgba(168,85,247,.12);color:var(--purple-light);padding:5px 8px;font-size:inherit;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0}
 .subtitle-translate-btn[aria-pressed="true"]{background:rgba(168,85,247,.25);border-color:var(--purple)}
 .subtitle-translate-btn:disabled{opacity:.55;cursor:default}
+.subtitle-furigana-btn{border:1px solid rgba(168,85,247,.4);border-radius:7px;background:rgba(168,85,247,.12);color:var(--purple-light);padding:5px 8px;font-size:inherit;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.subtitle-furigana-btn[aria-pressed="true"]{background:rgba(168,85,247,.25);border-color:var(--purple)}
+.subtitle-furigana-btn:disabled{opacity:.55;cursor:default}
+ruby{ruby-position:over;}
+rt{font-size:0.62em;color:var(--purple-light,#c084fc);font-weight:500;user-select:none;line-height:1;}
+.sub-line.furigana-active{line-height:2.0;padding-top:8px;padding-bottom:6px;}
 .sub-translation{display:block;margin-top:7px;color:var(--text2);font-size:.95em;line-height:1.65;white-space:pre-wrap}
 .sub-ts {
     font-size: 10px;
@@ -1344,6 +1350,7 @@ body.android-runtime .android-only{display:inline-flex!important}
             </button>
             <i class="fa-solid fa-closed-captioning" style="color:var(--purple)"></i>
             <button type="button" class="subtitle-translate-btn" id="subtitleTranslateBtn" onclick="toggleSubtitleTranslation()" aria-pressed="false" title="将当前字幕翻译为中文">双语字幕</button>
+            <button type="button" class="subtitle-furigana-btn" id="subtitleFuriganaBtn" onclick="toggleFurigana()" aria-pressed="false" title="为日文加注假名(振仮名)">假名标注</button>
             <span class="sub-badge" id="subBadge" style="background:rgba(100,116,139,.2);color:#94a3b8;border-color:rgba(100,116,139,.3)">未播放</span>
         </div>
         <div class="sub-actions">
@@ -2638,7 +2645,7 @@ function renderSubs() {
     cues.forEach((c, i) => {
         const saved = savedCues.has(i);
         const isChecked = selectedCues.has(i);
-        markup.push(`<div class="sub-line ${isChecked ? 'selected' : ''}" id="cue-${i}" data-cue-start="${c.start}">
+        markup.push(`<div class="sub-line ${isChecked ? 'selected' : ''} ${furiganaEnabled && furiganaCache.has(c.text) ? 'furigana-active' : ''}" id="cue-${i}" data-cue-start="${c.start}">
             <input type="checkbox" class="cue-check" data-idx="${i}" ${isChecked ? 'checked' : ''} onclick="event.stopPropagation()" onchange="onCueCheckChange(${i}, this.checked)" title="勾选送入 AI 提问框">
             <span class="sub-ts">${ft(c.start)}</span>
             <span class="sub-txt">${wordSpans(c.text, i)}${subtitleTranslationEnabled && subtitleTranslations.has(subtitleTranslationKey(c)) ? `<span class="sub-translation">${escHtml(subtitleTranslations.get(subtitleTranslationKey(c)))}</span>` : ''}</span>
@@ -2668,6 +2675,7 @@ function renderSubs() {
     renderedSubtitleMarkup=markup;
     if (activeCue >= 0) document.getElementById(`cue-${activeCue}`)?.classList.add('active');
     translateAvailableSubtitles();
+    if (furiganaEnabled) fetchFuriganaForCues();
 }
 
 async function regenerateSentence(event, idx) {
@@ -2702,12 +2710,65 @@ async function regenerateSentence(event, idx) {
     }
 }
 
+let furiganaEnabled = false;
+let furiganaBusy = false;
+const furiganaCache = new Map();
+
+function toggleFurigana() {
+    if (!nowPlaying || !cues.length) { toast('请等待首条字幕就绪后加注假名', 'info'); return; }
+    furiganaEnabled = !furiganaEnabled;
+    const btn = document.getElementById('subtitleFuriganaBtn');
+    if (btn) {
+        btn.setAttribute('aria-pressed', String(furiganaEnabled));
+    }
+    renderSubs();
+    if (furiganaEnabled) {
+        fetchFuriganaForCues();
+    }
+}
+
+async function fetchFuriganaForCues() {
+    if (!furiganaEnabled || furiganaBusy || !nowPlaying || !cues.length) return;
+    const uncached = cues.filter(c => !furiganaCache.has(c.text));
+    if (!uncached.length) return;
+
+    furiganaBusy = true;
+    try {
+        const batchSize = 30;
+        for (let i = 0; i < uncached.length; i += batchSize) {
+            if (!furiganaEnabled) break;
+            const chunk = uncached.slice(i, i + batchSize).map(c => c.text);
+            const res = await fetch('/api/furigana', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ sentences: chunk })
+            });
+            const data = await res.json();
+            if (data.status === 'success' && Array.isArray(data.results)) {
+                data.results.forEach(r => {
+                    if (r.text && r.ruby_html) {
+                        furiganaCache.set(r.text, r.ruby_html);
+                    }
+                });
+                renderSubs();
+            }
+        }
+    } catch(e) {
+        console.warn('Furigana parsing failed:', e);
+    } finally {
+        furiganaBusy = false;
+    }
+}
+
 function wordSpans(text, cueIdx) {
+    if (furiganaEnabled && furiganaCache.has(text)) {
+        return furiganaCache.get(text);
+    }
     return text.split(/(\s+)/).map(tok => {
         if (/^\s+$/.test(tok)) return tok;
-        const word = tok.replace(/[^a-zA-Z'']/g, '');
-        if (!word || word.length < 2) return `<span>${escHtml(tok)}</span>`;
-        return `<span class="word" data-word="${escHtml(word.toLowerCase())}" data-cue-index="${cueIdx}">${escHtml(tok)}</span>`;
+        const word = tok.replace(/[^\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff a-zA-Z]/g, '');
+        if (!word) return `<span>${escHtml(tok)}</span>`;
+        return `<span class="word" data-word="${escHtml(word)}" data-cue-index="${cueIdx}">${escHtml(tok)}</span>`;
     }).join('');
 }
 
