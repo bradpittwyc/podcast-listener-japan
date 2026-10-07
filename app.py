@@ -26,9 +26,25 @@ from dotenv import load_dotenv, set_key
 from transcription import transcript_events, stream_with_heartbeat, to_vtt, cache_paths
 from transcription_jobs import TranscriptionJobs
 
+import sys
+import updater
+
 transcription_jobs = TranscriptionJobs()
 
-load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
+if getattr(sys, 'frozen', False):
+    EXE_DIR = os.path.dirname(os.path.abspath(sys.executable))
+    RESOURCE_DIR = getattr(sys, '_MEIPASS', EXE_DIR)
+else:
+    EXE_DIR = os.path.dirname(os.path.abspath(__file__))
+    RESOURCE_DIR = EXE_DIR
+
+BASE_DIR = EXE_DIR
+CACHE_DIR = os.path.join(EXE_DIR, "subtitle_cache")
+os.makedirs(CACHE_DIR, exist_ok=True)
+STATIC_DIR = os.path.join(RESOURCE_DIR, "static")
+os.makedirs(STATIC_DIR, exist_ok=True)
+
+load_dotenv(os.path.join(EXE_DIR, ".env"))
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 gemini_client = genai_sdk.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
@@ -43,20 +59,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CACHE_DIR = os.path.join(BASE_DIR, "subtitle_cache")
-os.makedirs(CACHE_DIR, exist_ok=True)
-STATIC_DIR = os.path.join(BASE_DIR, "static")
-os.makedirs(STATIC_DIR, exist_ok=True)
-
 app.mount("/cache", StaticFiles(directory=CACHE_DIR), name="cache")
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 @app.on_event("startup")
 async def trim_old_caches():
     # At server startup no episode workers are running yet.
-    await asyncio.to_thread(cache_policy.prune,CACHE_DIR)
+    await asyncio.to_thread(cache_policy.prune, CACHE_DIR)
 
-SETTINGS_PATH = os.path.join(BASE_DIR, ".env")
+SETTINGS_PATH = os.path.join(EXE_DIR, ".env")
 settings_lock = threading.Lock()
 corrections_lock = threading.Lock()
 KEY_FIELDS = {"gemini_key": "GEMINI_API_KEY",
@@ -753,8 +764,29 @@ def podfollow_page():
             return f.read()
     return "<h1>PodFollow Japan loading...</h1>"
 
+@app.get("/api/version")
+def get_app_version():
+    return {"version": updater.APP_VERSION}
+
+@app.get("/api/check_update")
+def check_update():
+    return updater.check_for_updates()
+
+@app.post("/api/perform_update")
+def perform_update(payload: dict):
+    download_url = payload.get("download_url")
+    if not download_url:
+        raise HTTPException(status_code=400, detail="未提供下载链接")
+    def do_update():
+        import time
+        time.sleep(0.5)
+        updater.trigger_self_update(download_url)
+    threading.Thread(target=do_update, daemon=True).start()
+    return {"status": "updating"}
+
 if __name__ == "__main__":
     host = os.environ.get("HOST", "127.0.0.1")
     port = int(os.environ.get("PORT", "8557"))
     print(f"Podcast Learner starting at http://{host}:{port}")
     uvicorn.run(app, host=host, port=port)
+

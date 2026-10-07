@@ -1967,6 +1967,70 @@ body.android-runtime .android-only{display:inline-flex!important}
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap"><strong style="flex:1">字幕打印预览 <small id="transcriptPrintStatus" style="font-size:11px;font-weight:normal"></small></strong><button class="lb" onclick="refreshTranscriptPrintPreview()">更新预览</button><button class="lb" onclick="printTranscriptDocument()">打印 / 保存 PDF</button><button class="lb" onclick="document.getElementById('transcriptPrintDialog').close()">关闭</button></div>
     <iframe id="transcriptPrintFrame" title="字幕打印排版" style="width:100%;height:calc(100% - 44px);border:1px solid #ddd;background:white"></iframe>
 </dialog>
+
+<dialog id="settingsDialog">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <h3 style="margin:0;font-size:16px;font-weight:600"><i class="fa-solid fa-gear" style="color:var(--purple)"></i> 系统设置</h3>
+        <button type="button" class="lb" onclick="closeSettings()" style="padding:4px 8px;border:none;background:none;color:var(--text2);cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="saveApiSettings(event)">
+        <label for="geminiKey">Gemini API Key</label>
+        <input type="password" id="geminiKey" placeholder="未配置，请输入 API Key" autocomplete="off" />
+
+        <label for="aliyunKey1">阿里 DashScope API Key 1 (SenseVoice/通义千问)</label>
+        <input type="password" id="aliyunKey1" placeholder="未配置，请输入 API Key" autocomplete="off" />
+
+        <label for="aliyunKey2">阿里 DashScope API Key 2 (备用)</label>
+        <input type="password" id="aliyunKey2" placeholder="未配置，请输入 API Key" autocomplete="off" />
+
+        <label for="aliyunRegion">阿里服务 Region</label>
+        <select id="aliyunRegion">
+            <option value="beijing">beijing (北京 / 默认)</option>
+            <option value="singapore">singapore (新加坡)</option>
+        </select>
+
+        <label for="subtitleProvider">语音转写引擎</label>
+        <select id="subtitleProvider">
+            <option value="aliyun">阿里云 SenseVoice (推荐，极速高精度)</option>
+        </select>
+
+        <label for="dictionaryProvider">查词与语法分析引擎</label>
+        <select id="dictionaryProvider">
+            <option value="auto">自动选择 (推荐)</option>
+            <option value="qwen">通义千问 Qwen</option>
+            <option value="gemini">Google Gemini</option>
+        </select>
+
+        <select id="translationProvider" style="display:none">
+            <option value="gemini">Google Gemini</option>
+            <option value="qwen">通义千问 Qwen</option>
+        </select>
+
+        <label for="tutorProvider">AI 助教聊天引擎</label>
+        <select id="tutorProvider">
+            <option value="qwen">通义千问 Qwen (推荐)</option>
+            <option value="gemini">Google Gemini</option>
+        </select>
+
+        <hr style="border:none;border-top:1px solid var(--border);margin:16px 0 12px" />
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+            <span><i class="fa-solid fa-arrows-rotate" style="color:var(--purple)"></i> 软件升级</span>
+            <span id="appVersionBadge" style="font-size:11px;background:rgba(147,51,234,0.15);color:var(--purple);padding:2px 8px;border-radius:10px">v1.0.0</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+            <button type="button" class="lb" onclick="checkUpdateInModal()" id="checkUpdateBtn" style="flex:1;padding:8px">检查更新</button>
+            <button type="button" class="lb" id="performUpdateBtn" onclick="performUpdateInModal()" style="display:none;background:var(--purple);color:white;padding:8px">一键升级</button>
+        </div>
+        <div id="updateStatusText" style="font-size:11px;color:var(--text2);margin-bottom:12px;line-height:1.4"></div>
+
+        <div id="settingsStatus"></div>
+        <div style="display:flex;gap:8px;margin-top:16px">
+            <button type="button" class="lb" onclick="closeSettings()" style="flex:1;padding:10px">取消</button>
+            <button type="submit" id="saveSettingsBtn" style="flex:1;padding:10px">保存设置</button>
+        </div>
+    </form>
+</dialog>
+
 <div id="subtitleFormatMenu" role="menu" aria-label="字幕导出格式" hidden>
     <button role="menuitemradio" aria-checked="true" data-format="srt" onclick="selectSubtitleFormat('srt')">SRT 字幕<i class="fa-solid fa-check format-tick" aria-hidden="true"></i></button>
     <button role="menuitemradio" aria-checked="false" data-format="vtt" onclick="selectSubtitleFormat('vtt')">VTT 字幕<i class="fa-solid fa-check format-tick" aria-hidden="true"></i></button>
@@ -3992,10 +4056,80 @@ function applyKeyStatus(configured) {
         input.placeholder = configured[field] ? '已配置，输入新 Key 可替换' : '未配置，请输入 API Key';
     }
 }
+let updateDownloadUrl = null;
+
+async function fetchAppVersion() {
+    try {
+        const res = await fetch('/api/version');
+        if (res.ok) {
+            const data = await res.json();
+            const badge = document.getElementById('appVersionBadge');
+            if (badge && data.version) badge.textContent = 'v' + data.version;
+        }
+    } catch(e) {}
+}
+
+async function checkUpdateInModal() {
+    const btn = document.getElementById('checkUpdateBtn');
+    const statusText = document.getElementById('updateStatusText');
+    const updateBtn = document.getElementById('performUpdateBtn');
+    btn.disabled = true;
+    statusText.textContent = '正在检查新版本…';
+    updateBtn.style.display = 'none';
+    updateDownloadUrl = null;
+
+    try {
+        const res = await fetch('/api/check_update');
+        const data = await res.json();
+        if (data.has_update) {
+            statusText.innerHTML = `<strong style="color:var(--purple)">发现新版本 v${data.latest_version}！</strong><br>${data.release_notes ? data.release_notes.replace(/\n/g, '<br>') : ''}`;
+            updateDownloadUrl = data.download_url;
+            if (updateDownloadUrl) {
+                updateBtn.style.display = 'inline-block';
+            }
+        } else if (data.error) {
+            statusText.textContent = `检查失败: ${data.error}`;
+        } else {
+            statusText.textContent = `已是最新版本 (v${data.current_version})`;
+        }
+    } catch (e) {
+        statusText.textContent = '检查更新失败，请检查网络。';
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+async function performUpdateInModal() {
+    if (!updateDownloadUrl) return;
+    const updateBtn = document.getElementById('performUpdateBtn');
+    const statusText = document.getElementById('updateStatusText');
+    updateBtn.disabled = true;
+    statusText.textContent = '正在下载更新包并安装，软件即将自动重启…';
+
+    try {
+        const res = await fetch('/api/perform_update', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ download_url: updateDownloadUrl })
+        });
+        if (res.ok) {
+            statusText.textContent = '更新程序已启动，正在关闭并自动更新...';
+        } else {
+            const data = await res.json();
+            statusText.textContent = '升级启动失败: ' + (data.detail || '未知错误');
+            updateBtn.disabled = false;
+        }
+    } catch(e) {
+        statusText.textContent = '升级过程发起异常，请重试。';
+        updateBtn.disabled = false;
+    }
+}
+
 async function openSettings() {
     const dialog = document.getElementById('settingsDialog');
     document.getElementById('settingsStatus').textContent = '正在读取配置…';
     applyKeyStatus({});
+    fetchAppVersion();
     dialog.showModal();
     document.getElementById('saveSettingsBtn').disabled = true;
     try {

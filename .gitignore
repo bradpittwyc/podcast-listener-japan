@@ -12,3 +12,6 @@ android/**/build/
 *.apk
 *.log
 .DS_Store
+build/
+dist/
+*.spec
