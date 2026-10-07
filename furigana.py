@@ -11,6 +11,7 @@ def get_kks():
 
 HAS_KANJI_RE = re.compile(r'[\u3400-\u4dbf\u4e00-\u9fff]')
 KANA_WORD_RE = re.compile(r'[\u3040-\u30ff\u31f0-\u31ff]{2,}')
+WORD_CLEAN_RE = re.compile(r'[^\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff a-zA-Z0-9]')
 
 def text_to_ruby(text: str) -> str:
     """Converts Japanese text into HTML with <ruby> and <rt> tags for Kanji."""
@@ -62,12 +63,31 @@ def text_to_ruby(text: str) -> str:
 
     return "".join(html_parts)
 
+def text_to_word_spans(text: str) -> str:
+    """Converts Japanese text into clickable word spans."""
+    if not text:
+        return ""
+    kks = get_kks()
+    result = kks.convert(text)
+    html_parts = []
+    for item in result:
+        orig = item.get('orig', '')
+        if not orig:
+            continue
+        cleaned = WORD_CLEAN_RE.sub('', orig)
+        if cleaned:
+            html_parts.append(f'<span class="word" data-word="{cleaned}">{orig}</span>')
+        else:
+            html_parts.append(orig)
+    return "".join(html_parts)
+
 def batch_to_ruby(sentences: list[str]) -> list[dict]:
-    """Converts a batch of sentences to ruby HTML dicts."""
+    """Converts a batch of sentences to ruby HTML dicts and word HTML dicts."""
     res = []
     for s in sentences:
         res.append({
             "text": s,
-            "ruby_html": text_to_ruby(s)
+            "ruby_html": text_to_ruby(s),
+            "word_html": text_to_word_spans(s)
         })
     return res

@@ -360,19 +360,20 @@ def define_word(word: str = Query(..., min_length=1), context: str = ""):
     Use Gemini AI to look up a word with phonetic, part of speech, English definition, 
     Chinese translation, and example sentence. Optionally context-aware.
     """
-    prompt = f"""You are a professional lexicographer and ESL teacher. Analyze the English word "{word}".
+    prompt = f"""You are a professional Japanese lexicographer and language teacher (日本語教師).
+    Analyze the Japanese word, phrase, or kanji compound "{word}".
     {"Context sentence: " + context if context else ""}
 
     Return ONLY a raw JSON object (no markdown codeblock, no triple backticks) with this structure:
     {{
         "word": "{word}",
-        "phonetic": "/.../",
-        "pos": "noun/verb/adj/adv etc.",
-        "definition_en": "Concise English definition",
-        "translation_cn": "准确中文释义（含词性）",
-        "example": "An engaging example sentence containing the word.",
+        "phonetic": "[平仮名/ローマ字, 如: にほんご / nihongo]",
+        "pos": "词性（名詞/動詞/形容詞/副詞 等）",
+        "definition_en": "Concise English explanation or equivalent",
+        "translation_cn": "准确中文释义（含词性说明）",
+        "example": "包含该词的完整日文例句",
         "example_cn": "例句的中文翻译",
-        "context_note": "If context sentence was provided, brief note on how it is used in that specific context (in Chinese), otherwise empty string"
+        "context_note": "若提供了上下文句子，用中文简要说明该词在该句中的用法与特定语境含义；未提供则留空"
     }}
     """
     if dictionary_provider() == 'qwen':
