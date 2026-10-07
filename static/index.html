@@ -3668,6 +3668,8 @@ function triggerAiTranscribe(auto = false, resume = false) {
                 const cue = data.cue;
                 if (cue && Number.isFinite(cue.start) && Number.isFinite(cue.end) && cue.end > cue.start && typeof cue.text === 'string' && !cues.some(c => c.start === cue.start && c.end === cue.end && c.text === cue.text)) cues.push(cue);
                 updateAiAvailability();
+                renderSubs();
+                syncSubs(audio.currentTime);
             } else if (data.status === 'chunk_ready') {
                 if (!Number.isFinite(data.until)) { fail('字幕进度无效'); return; }
                 if (data.until > coveredUntil) reconnectAttempts = 0;
