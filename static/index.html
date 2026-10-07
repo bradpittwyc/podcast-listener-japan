@@ -1818,54 +1818,121 @@ body.android-runtime .android-only{display:inline-flex!important}
     border-color: rgba(168, 85, 247, 0.4);
 }
 
+/* Mobile Category Trigger Button & Scrim */
+.mobile-cat-trigger-btn {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(168,85,247,0.2) 0%, rgba(99,102,241,0.15) 100%);
+    border: 1px solid rgba(168,85,247,0.4);
+    color: var(--purple-light);
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.cat-drawer-header {
+    display: none;
+}
+
+.cat-drawer-scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    z-index: 290;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+.cat-drawer-scrim.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
 @media (max-width: 768px) {
+    .mobile-cat-trigger-btn {
+        display: inline-flex !important;
+    }
+    .cat-drawer-header {
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4px 4px 14px;
+        border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+        margin-bottom: 8px;
+    }
+    .cat-drawer-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .cat-drawer-close {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.08);
+        border: none;
+        color: var(--text2);
+        font-size: 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
     .main-layout {
         flex-direction: column !important;
         overflow-y: auto !important;
         height: auto !important;
     }
     .category-sidebar {
-        width: 100% !important;
-        height: 52px !important;
-        min-height: 52px !important;
-        max-height: 52px !important;
-        position: sticky !important;
+        position: fixed !important;
         top: 0 !important;
-        z-index: 15 !important;
-        flex-direction: row !important;
-        align-items: center !important;
-        overflow-x: auto !important;
-        overflow-y: hidden !important;
-        scroll-snap-type: x mandatory;
-        -webkit-overflow-scrolling: touch;
-        padding: 8px 12px !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        width: 280px !important;
+        max-width: 85vw !important;
+        height: 100vh !important;
+        z-index: 300 !important;
+        background: rgba(13, 13, 24, 0.98) !important;
+        backdrop-filter: blur(24px) !important;
+        box-shadow: 12px 0 40px rgba(0, 0, 0, 0.8) !important;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        padding: 20px 16px !important;
+        display: flex !important;
+        flex-direction: column !important;
         gap: 8px !important;
-        background: rgba(13, 13, 24, 0.96) !important;
-        backdrop-filter: blur(16px);
-        border-right: none !important;
-        border-bottom: 1px solid rgba(168, 85, 247, 0.2) !important;
-        flex-shrink: 0 !important;
+        overflow-y: auto !important;
+        border-right: 1px solid rgba(168, 85, 247, 0.3) !important;
+        border-bottom: none !important;
     }
-    .category-sidebar::-webkit-scrollbar { display: none; }
+    .category-sidebar.open {
+        transform: translateX(0) !important;
+    }
     .sidebar-title { display: none !important; }
     .cat-item {
         white-space: nowrap !important;
         flex-shrink: 0 !important;
-        scroll-snap-align: start;
-        padding: 6px 14px !important;
-        border-radius: 20px !important;
-        background: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        font-size: 13px !important;
+        padding: 12px 16px !important;
+        border-radius: 14px !important;
+        background: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.06) !important;
+        font-size: 13.5px !important;
         font-weight: 600 !important;
-        height: 34px !important;
-        align-self: center !important;
+        height: auto !important;
+        align-self: stretch !important;
     }
     .cat-item.active {
-        background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%) !important;
-        border: none !important;
+        background: linear-gradient(135deg, rgba(168, 85, 247, 0.3) 0%, rgba(99, 102, 241, 0.25) 100%) !important;
+        border: 1px solid rgba(168, 85, 247, 0.5) !important;
         color: white !important;
-        box-shadow: 0 4px 14px rgba(168, 85, 247, 0.4) !important;
+        box-shadow: 0 4px 14px rgba(168, 85, 247, 0.25) !important;
     }
     .content-area {
         padding: 16px 14px 80px !important;
@@ -1919,9 +1986,14 @@ body.android-runtime .android-only{display:inline-flex!important}
     </header>
 
     <!-- PodFollow Main Layout: Left Category Sidebar + Right Content Area -->
+    <div class="cat-drawer-scrim" id="catDrawerScrim" onclick="closeMobileCatDrawer()"></div>
     <div class="main-layout">
         <!-- Sidebar Categories -->
         <aside class="category-sidebar" id="categoryRow">
+            <div class="cat-drawer-header">
+                <div class="cat-drawer-title"><i class="fa-solid fa-layer-group" style="color:var(--purple-light)"></i> 日本 Apple 分类榜单</div>
+                <button class="cat-drawer-close" onclick="closeMobileCatDrawer()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
             <div class="sidebar-title">日本 Apple 分类榜单</div>
             
             <div class="cat-item active" onclick="switchCategory('26', '総合 Top 100', this)">
@@ -2015,9 +2087,14 @@ body.android-runtime .android-only{display:inline-flex!important}
                     </h1>
                     <div style="font-size:12px; color:var(--text2); margin-top:4px;">数据实时同步自 Apple Podcasts Japan 官方榜单</div>
                 </div>
-                <span class="result-count-badge" id="resultCountBadge" style="font-size:12px; padding:4px 12px; border-radius:20px; background:rgba(168,85,247,0.15); color:var(--purple-light); border:1px solid rgba(168,85,247,0.3);">
-                    Top 100 榜单
-                </span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <button class="mobile-cat-trigger-btn" onclick="toggleMobileCatDrawer()">
+                        <i class="fa-solid fa-bars-staggered"></i> 分类榜单
+                    </button>
+                    <span class="result-count-badge" id="resultCountBadge" style="font-size:12px; padding:4px 12px; border-radius:20px; background:rgba(168,85,247,0.15); color:var(--purple-light); border:1px solid rgba(168,85,247,0.3);">
+                        Top 100 榜单
+                    </span>
+                </div>
             </div>
 
             <!-- Presets Row -->
@@ -2728,14 +2805,25 @@ function showTab(tab) {
     if (tab === 'notebook') openNotebookModal();
 }
 
-// ══════════════════════════════════════════════
-//  PLAZA
-// ══════════════════════════════════════════════
+function toggleMobileCatDrawer() {
+    const sidebar = document.getElementById('categoryRow');
+    const scrim = document.getElementById('catDrawerScrim');
+    if (sidebar) sidebar.classList.toggle('open');
+    if (scrim) scrim.classList.toggle('open');
+}
+function closeMobileCatDrawer() {
+    const sidebar = document.getElementById('categoryRow');
+    const scrim = document.getElementById('catDrawerScrim');
+    if (sidebar) sidebar.classList.remove('open');
+    if (scrim) scrim.classList.remove('open');
+}
+
 function switchCategory(genreId, label, el) {
     currentCategory = genreId;
     currentCategoryLabel = label;
     document.querySelectorAll('#categoryRow .rbtn, #categoryRow .cat-item').forEach(b => b.classList.remove('active'));
     if (el) el.classList.add('active');
+    closeMobileCatDrawer();
     loadCategoryCharts(genreId, label);
 }
 
