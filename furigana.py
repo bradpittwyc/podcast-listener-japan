@@ -10,30 +10,38 @@ def get_kks():
     return _kks
 
 HAS_KANJI_RE = re.compile(r'[\u3400-\u4dbf\u4e00-\u9fff]')
-KANA_WORD_RE = re.compile(r'[\u3040-\u30ff\u31f0-\u31ff]{2,}')
 WORD_CLEAN_RE = re.compile(r'[^\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff a-zA-Z0-9]')
 
-def text_to_ruby(text: str) -> str:
-    """Converts Japanese text into HTML with <ruby> and <rt> tags for Kanji."""
+def process_sentence(text: str) -> dict:
+    """Processes a Japanese sentence into both ruby_html (Furigana) and word_html (tokenized words)."""
     if not text:
-        return text
+        return {"text": "", "ruby_html": "", "word_html": ""}
 
     kks = get_kks()
-    result = kks.convert(text)
-    html_parts = []
+    tokens = kks.convert(text)
 
-    for item in result:
+    ruby_parts = []
+    word_parts = []
+
+    for item in tokens:
         orig = item.get('orig', '')
         hira = item.get('hira', '')
 
         if not orig:
             continue
 
+        cleaned = WORD_CLEAN_RE.sub('', orig)
+        if not cleaned:
+            ruby_parts.append(orig)
+            word_parts.append(orig)
+            continue
+
+        # Build word_html for plain mode
+        word_parts.append(f'<span class="word" data-word="{cleaned}">{orig}</span>')
+
+        # Build ruby_html for furigana mode
         if not HAS_KANJI_RE.search(orig):
-            if KANA_WORD_RE.search(orig):
-                html_parts.append(f'<span class="word" data-word="{orig}">{orig}</span>')
-            else:
-                html_parts.append(orig)
+            ruby_parts.append(f'<span class="word" data-word="{cleaned}">{orig}</span>')
             continue
 
         # Match common prefix
@@ -55,39 +63,18 @@ def text_to_ruby(text: str) -> str:
         core_hira = hira[prefix_len:len(hira) - suffix_len if suffix_len > 0 else len(hira)]
 
         if core_orig:
-            ruby_item = f'<span class="word" data-word="{orig}"><ruby>{core_orig}<rt>{core_hira}</rt></ruby></span>'
+            ruby_item = f'<ruby>{core_orig}<rt>{core_hira}</rt></ruby>'
         else:
-            ruby_item = ""
+            ruby_item = core_orig
 
-        html_parts.append(f"{prefix}{ruby_item}{suffix}")
+        ruby_parts.append(f'<span class="word" data-word="{cleaned}">{prefix}{ruby_item}{suffix}</span>')
 
-    return "".join(html_parts)
-
-def text_to_word_spans(text: str) -> str:
-    """Converts Japanese text into clickable word spans."""
-    if not text:
-        return ""
-    kks = get_kks()
-    result = kks.convert(text)
-    html_parts = []
-    for item in result:
-        orig = item.get('orig', '')
-        if not orig:
-            continue
-        cleaned = WORD_CLEAN_RE.sub('', orig)
-        if cleaned:
-            html_parts.append(f'<span class="word" data-word="{cleaned}">{orig}</span>')
-        else:
-            html_parts.append(orig)
-    return "".join(html_parts)
+    return {
+        "text": text,
+        "ruby_html": "".join(ruby_parts),
+        "word_html": "".join(word_parts)
+    }
 
 def batch_to_ruby(sentences: list[str]) -> list[dict]:
-    """Converts a batch of sentences to ruby HTML dicts and word HTML dicts."""
-    res = []
-    for s in sentences:
-        res.append({
-            "text": s,
-            "ruby_html": text_to_ruby(s),
-            "word_html": text_to_word_spans(s)
-        })
-    return res
+    """Converts a batch of sentences into ruby and word HTML dicts."""
+    return [process_sentence(s) for s in sentences]

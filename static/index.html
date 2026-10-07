@@ -2704,7 +2704,7 @@ function renderSubs() {
     renderedSubtitleMarkup=markup;
     if (activeCue >= 0) document.getElementById(`cue-${activeCue}`)?.classList.add('active');
     translateAvailableSubtitles();
-    if (furiganaEnabled) fetchFuriganaForCues();
+    fetchFuriganaForCues();
 }
 
 async function regenerateSentence(event, idx) {
@@ -2757,7 +2757,7 @@ function toggleFurigana() {
 }
 
 async function fetchFuriganaForCues() {
-    if (!furiganaEnabled || furiganaBusy || !nowPlaying || !cues.length) return;
+    if (!nowPlaying || !cues.length) return;
     const uncached = cues.filter(c => !furiganaCache.has(c.text));
     if (!uncached.length) return;
 
@@ -2765,7 +2765,6 @@ async function fetchFuriganaForCues() {
     try {
         const batchSize = 30;
         for (let i = 0; i < uncached.length; i += batchSize) {
-            if (!furiganaEnabled) break;
             const chunk = uncached.slice(i, i + batchSize).map(c => c.text);
             const res = await fetch('/api/furigana', {
                 method: 'POST',
@@ -2775,8 +2774,8 @@ async function fetchFuriganaForCues() {
             const data = await res.json();
             if (data.status === 'success' && Array.isArray(data.results)) {
                 data.results.forEach(r => {
-                    if (r.text && r.ruby_html) {
-                        furiganaCache.set(r.text, r.ruby_html);
+                    if (r.text) {
+                        furiganaCache.set(r.text, r);
                     }
                 });
                 renderSubs();
@@ -2789,16 +2788,23 @@ async function fetchFuriganaForCues() {
     }
 }
 
-function wordSpans(text, cueIdx) {
-    if (furiganaEnabled && furiganaCache.has(text)) {
-        return furiganaCache.get(text);
-    }
-    return text.split(/(\s+)/).map(tok => {
-        if (/^\s+$/.test(tok)) return tok;
-        const word = tok.replace(/[^\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff a-zA-Z]/g, '');
-        if (!word) return `<span>${escHtml(tok)}</span>`;
-        return `<span class="word" data-word="${escHtml(word)}" data-cue-index="${cueIdx}">${escHtml(tok)}</span>`;
+function fallbackJapaneseWordSpans(text, cueIdx) {
+    if (!text) return '';
+    const tokens = text.match(/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\w]+|[^\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\w\s]+|\s+/g) || [text];
+    return tokens.map(tok => {
+        if (/^\s+$/.test(tok) || /^[^\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\w]+$/.test(tok)) return tok;
+        const cleaned = tok.replace(/[^\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff a-zA-Z0-9]/g, '');
+        if (!cleaned) return `<span>${escHtml(tok)}</span>`;
+        return `<span class="word" data-word="${escHtml(cleaned)}" data-cue-index="${cueIdx}">${escHtml(tok)}</span>`;
     }).join('');
+}
+
+function wordSpans(text, cueIdx) {
+    if (furiganaCache.has(text)) {
+        const item = furiganaCache.get(text);
+        return furiganaEnabled ? item.ruby_html : item.word_html;
+    }
+    return fallbackJapaneseWordSpans(text, cueIdx);
 }
 
 function jumpTo(secs) {
