@@ -2813,10 +2813,9 @@ window.addEventListener('touchstart', (e) => {
     if (!e.touches || e.touches.length !== 1) return;
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
-    // Edge swipe candidate ONLY when touch starts strictly at the left screen edge (X <= 50px)
+    // Edge swipe candidate ONLY when touch starts strictly at the left screen edge (X <= 25px)
     const isMobile = window.innerWidth <= 768;
-    const maxStartEdge = Math.max(50, window.innerWidth * 0.12);
-    isEdgeSwipeCandidate = isMobile && (touchStartX <= maxStartEdge) && (touchStartY > 70);
+    isEdgeSwipeCandidate = isMobile && (touchStartX <= 25) && (touchStartY > 70);
 }, { passive: true });
 
 window.addEventListener('touchmove', (e) => {
@@ -2826,8 +2825,8 @@ window.addEventListener('touchmove', (e) => {
     const deltaX = currentX - touchStartX;
     const deltaY = Math.abs(currentY - touchStartY);
     
-    // Immediate trigger as soon as finger slides right > 30px anywhere along the screen
-    if (deltaX > 30 && deltaX > deltaY * 0.6) {
+    // Immediate trigger as soon as finger slides right > 40px from the screen edge
+    if (deltaX > 40 && deltaX > deltaY * 0.7) {
         const sidebar = document.getElementById('categoryRow');
         if (sidebar && !sidebar.classList.contains('open')) {
             openMobileCatDrawer();
