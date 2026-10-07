@@ -2813,9 +2813,10 @@ window.addEventListener('touchstart', (e) => {
     if (!e.touches || e.touches.length !== 1) return;
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
-    // Allow touch to start anywhere along the left 40% of the screen (at any Y position from top to bottom)
-    const maxStartEdge = Math.max(160, window.innerWidth * 0.40);
-    isEdgeSwipeCandidate = (touchStartX <= maxStartEdge);
+    // Edge swipe candidate ONLY when touch starts at the left edge (X <= 30% width / 120px) AND below top header buttons (Y > 70)
+    const isMobile = window.innerWidth <= 768;
+    const maxStartEdge = Math.max(120, window.innerWidth * 0.30);
+    isEdgeSwipeCandidate = isMobile && (touchStartX <= maxStartEdge) && (touchStartY > 70);
 }, { passive: true });
 
 window.addEventListener('touchmove', (e) => {
