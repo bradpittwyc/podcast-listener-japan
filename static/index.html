@@ -3232,6 +3232,7 @@ function startPlay(url, title, author, cover, transcriptUrl, description) {
     totalTranscriptionRetries = 0;
     androidRestorePosition = null;
     playbackEnded = false;
+    closeMobileCatDrawer();
     if (window.matchMedia && window.matchMedia('(max-width:600px)').matches) collapseSidebar();
     clearSubtitleRecovery();
     reconnectAttempts = 0;
