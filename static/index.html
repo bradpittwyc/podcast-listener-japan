@@ -2108,7 +2108,7 @@ function updateSubtitleTranslationButton() {
         button.innerHTML = '显示字幕';
     }
 }
-function resetSubtitleTranslations(keepEnabled = false, clear = true) {
+function resetSubtitleTranslations(keepEnabled = true, clear = true) {
     subtitleTranslationEpoch++;
     subtitleTranslationController?.abort();
     subtitleTranslationController = null;
@@ -2738,14 +2738,11 @@ function startPlay(url, title, author, cover, transcriptUrl, description) {
     clearLoop();
 
     audio.pause();
-    audio.preload = 'none';
+    audio.preload = 'auto';
     audio.src = isAndroidPlayback() ? androidAudioSource(url) : url;
     audio.playbackRate = speed;
     audio.volume = lastVolume;
     
-    audio.pause();
-    setPlayIcon(false);
-
     setBadge('已就绪 (未加载字幕)', 'rgba(100,116,139,.2)', '#94a3b8', 'rgba(100,116,139,.3)');
     renderSubs();
     playWhenReady();
