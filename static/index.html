@@ -2385,7 +2385,7 @@ audio.ontimeupdate = () => {
     const tot = document.getElementById('pbTot');
     if (tot) tot.textContent = ft(audio.duration);
     syncSubs(audio.currentTime);
-    if (wantsPlayback && !subtitlesComplete && audio.currentTime >= coveredUntil) {
+    if (wantsPlayback && (isTranscribing || (cues.length > 0 && subtitleTranslationEnabled)) && !subtitlesComplete && audio.currentTime >= coveredUntil) {
         waitingForSubtitles = true;
         audio.pause();
         setBadge(isTranscribing ? '等待后续字幕…' : '字幕未完成，请刷新重试', 'rgba(245,158,11,.15)', '#fbbf24', 'rgba(245,158,11,.3)');
