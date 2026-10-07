@@ -1734,6 +1734,16 @@ body.android-runtime .android-only{display:inline-flex!important}
     margin-top: 4px;
 }
 
+/* Main Layout Container */
+.main-layout {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    width: 100%;
+}
+
 /* Sidebar Category Navigation */
 .category-sidebar {
     width: 260px;
@@ -1809,59 +1819,76 @@ body.android-runtime .android-only{display:inline-flex!important}
 }
 
 @media (max-width: 768px) {
+    .main-layout {
+        flex-direction: column !important;
+        overflow-y: auto !important;
+        height: auto !important;
+    }
     .category-sidebar {
-        width: 100%;
-        height: auto;
-        position: sticky;
-        top: 0;
-        z-index: 15;
-        flex-direction: row;
-        overflow-x: auto;
+        width: 100% !important;
+        height: 52px !important;
+        min-height: 52px !important;
+        max-height: 52px !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 15 !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
         scroll-snap-type: x mandatory;
         -webkit-overflow-scrolling: touch;
-        padding: 10px 12px;
-        gap: 8px;
-        background: rgba(13, 13, 24, 0.96);
+        padding: 8px 12px !important;
+        gap: 8px !important;
+        background: rgba(13, 13, 24, 0.96) !important;
         backdrop-filter: blur(16px);
-        border-right: none;
-        border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+        border-right: none !important;
+        border-bottom: 1px solid rgba(168, 85, 247, 0.2) !important;
+        flex-shrink: 0 !important;
     }
     .category-sidebar::-webkit-scrollbar { display: none; }
-    .sidebar-title { display: none; }
+    .sidebar-title { display: none !important; }
     .cat-item {
-        white-space: nowrap;
-        flex-shrink: 0;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
         scroll-snap-align: start;
-        padding: 8px 16px;
-        border-radius: 20px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        font-size: 13px;
-        font-weight: 600;
+        padding: 6px 14px !important;
+        border-radius: 20px !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        height: 34px !important;
+        align-self: center !important;
     }
     .cat-item.active {
-        background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
-        border: none;
-        color: white;
-        box-shadow: 0 4px 14px rgba(168, 85, 247, 0.4);
+        background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%) !important;
+        border: none !important;
+        color: white !important;
+        box-shadow: 0 4px 14px rgba(168, 85, 247, 0.4) !important;
+    }
+    .content-area {
+        padding: 16px 14px 80px !important;
+        flex: 1 !important;
+        overflow-y: auto !important;
     }
     .home-pod-grid:not(.view-list) {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
     }
     .featured-hero-banner {
-        padding: 14px 16px;
-        gap: 12px;
-        flex-direction: column;
-        align-items: flex-start;
+        padding: 14px 16px !important;
+        gap: 12px !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
     }
     .featured-hero-cover {
-        width: 72px;
-        height: 72px;
+        width: 72px !important;
+        height: 72px !important;
     }
     .featured-hero-btn {
-        width: 100%;
-        justify-content: center;
+        width: 100% !important;
+        justify-content: center !important;
     }
 }
 </style>
@@ -1892,7 +1919,7 @@ body.android-runtime .android-only{display:inline-flex!important}
     </header>
 
     <!-- PodFollow Main Layout: Left Category Sidebar + Right Content Area -->
-    <div class="main-layout" style="display:flex; flex:1; overflow:hidden; width:100%;">
+    <div class="main-layout">
         <!-- Sidebar Categories -->
         <aside class="category-sidebar" id="categoryRow">
             <div class="sidebar-title">日本 Apple 分类榜单</div>
@@ -2718,10 +2745,27 @@ async function loadCategoryCharts(genreId = '26', label = '総合 Top 100') {
     try {
         const res = await fetch(`/api/genre-charts?genre_id=${genreId}&limit=100&country=jp`);
         const data = await res.json();
-        if (!res.ok || !Array.isArray(data.results)) throw new Error(data.detail || data.message || '分类榜单加载失败');
+        if (!res.ok || !Array.isArray(data.results) || !data.results.length) throw new Error(data.detail || data.message || '分类榜单加载失败');
         renderTopCharts(data.results, label);
     } catch(e) {
-        setPlaza(`<div style="padding:24px;text-align:center;color:var(--text3);font-size:12px">加载失败: ${escHtml(e.message)}</div>`);
+        try {
+            const rssUrl = genreId === '26' 
+                ? 'https://itunes.apple.com/jp/rss/toppodcasts/limit=100/json'
+                : `https://itunes.apple.com/jp/rss/toppodcasts/limit=100/genre=${genreId}/json`;
+            const res = await fetch(rssUrl);
+            const data = await res.json();
+            const entries = data.feed?.entry || [];
+            const results = entries.map((e, idx) => ({
+                collectionId: e.id?.attributes?.['im:id'] || '',
+                collectionName: e['im:name']?.label || '未知播客',
+                artistName: e['im:artist']?.label || '',
+                artworkUrl600: (e['im:image']?.[2]?.label || '').replace(/\d+x\d+bb/, '600x600bb'),
+                primaryGenreName: e.category?.attributes?.label || ''
+            }));
+            renderTopCharts(results, label);
+        } catch (err) {
+            setPlaza(`<div style="padding:24px;text-align:center;color:var(--text2);font-size:13px">❌ 榜单加载失败: ${escHtml(e.message)}</div>`);
+        }
     }
 }
 
