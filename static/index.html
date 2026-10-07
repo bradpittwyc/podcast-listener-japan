@@ -1754,6 +1754,9 @@ body.android-runtime .android-only{display:inline-flex!important}
     height: calc(100vh - 64px);
     overflow-y: auto;
 }
+.category-sidebar.collapsed {
+    display: none !important;
+}
 
 .sidebar-title {
     font-size: 11px;
@@ -2690,7 +2693,7 @@ function initAiExpansion() {
 
 function setSidebarCollapsed(collapsed) {
     isSidebarCollapsed = !!collapsed;
-    const col = document.getElementById('colLeft');
+    const col = document.getElementById('categoryRow') || document.getElementById('colLeft');
     if (col) col.classList.toggle('collapsed', isSidebarCollapsed);
     const icon = document.getElementById('sidebarToggleIcon');
     if (icon) {
