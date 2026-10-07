@@ -2093,7 +2093,7 @@ function updateSubtitleTranslationButton() {
     const button = document.getElementById('subtitleTranslateBtn');
     if (!button) return;
     button.disabled = !nowPlaying;
-    const busy = isTranscribing || subtitleTranslationBusy;
+    const busy = isTranscribing;
     button.setAttribute?.('aria-pressed', String(subtitleTranslationEnabled));
     button.setAttribute?.('aria-busy', String(busy));
 
@@ -2142,60 +2142,8 @@ function toggleSubtitleTranslation() {
     renderSubs();
 }
 async function translateAvailableSubtitles() {
-    if (!subtitleTranslationEnabled || subtitleTranslationBusy || subtitleTranslationFailed || !nowPlaying) return;
-    const epoch = subtitleTranslationEpoch;
-    subtitleTranslationBusy = true;
-    updateSubtitleTranslationButton();
-    try {
-        while (epoch === subtitleTranslationEpoch && subtitleTranslationEnabled) {
-            const pending = cues.filter(cue => !subtitleTranslations.has(subtitleTranslationKey(cue)));
-            if (!pending.length) break;
-            let length = 0;
-            const batch = [];
-            for (const cue of pending) {
-                if (batch.length >= 20 || (batch.length && length + cue.text.length > 12000)) break;
-                batch.push({key: subtitleTranslationKey(cue), text: cue.text});
-                length += cue.text.length;
-            }
-            const controller = typeof AbortController === 'undefined' ? null : new AbortController();
-            subtitleTranslationController = controller;
-            const timeout = controller ? setTimeout(() => controller.abort(), 180000) : null;
-            let data;
-            try {
-                const response = await fetch('/api/translate_subtitles', {
-                    method: 'POST', headers: {'Content-Type': 'application/json'},
-                    signal: controller?.signal,
-                    body: JSON.stringify({sentences: batch.map((cue, id) => ({id, text: cue.text}))})
-                });
-                data = await response.json();
-                if (data.status !== 'success') throw new Error(data.message || data.detail || '字幕翻译失败，请重试。');
-            } finally { if (timeout !== null) clearTimeout(timeout); }
-            if (epoch !== subtitleTranslationEpoch) return;
-            const translated = new Map();
-            if (!Array.isArray(data.translations) || data.translations.length !== batch.length) throw new Error('翻译结果不完整，请重试。');
-            for (const item of data.translations) {
-                if (!Number.isInteger(item.id) || item.id < 0 || item.id >= batch.length || translated.has(item.id)
-                    || typeof item.translation !== 'string' || !item.translation.trim()) throw new Error('翻译结果格式异常，请重试。');
-                translated.set(item.id, item.translation.trim());
-            }
-            batch.forEach((cue, id) => subtitleTranslations.set(cue.key, translated.get(id)));
-            const scroll = document.getElementById('subScroll').scrollTop;
-            renderSubs();
-            document.getElementById('subScroll').scrollTop = scroll;
-            activeCue = -1;
-            syncSubs(audio.currentTime);
-        }
-    } catch (error) {
-        if (epoch !== subtitleTranslationEpoch) return;
-        subtitleTranslationFailed = true;
-        toast(error.name === 'AbortError' ? '字幕翻译超时，点击双语字幕重试。' : error.message, 'info');
-    } finally {
-        if (epoch === subtitleTranslationEpoch) {
-            subtitleTranslationBusy = false;
-            subtitleTranslationController = null;
-            updateSubtitleTranslationButton();
-        }
-    }
+    // Translation disabled: only Japanese transcription is rendered
+    return;
 }
 let activeCue = -1;
 let isTranscribing = false;
@@ -3273,7 +3221,7 @@ function renderSubs() {
         markup.push(`<div class="sub-line ${isChecked ? 'selected' : ''} ${furiganaEnabled && furiganaCache.has(c.text) ? 'furigana-active' : ''}" id="cue-${i}" data-cue-start="${c.start}">
             <input type="checkbox" class="cue-check" data-idx="${i}" ${isChecked ? 'checked' : ''} onclick="event.stopPropagation()" onchange="onCueCheckChange(${i}, this.checked)" title="勾选送入 AI 提问框">
             <span class="sub-ts">${ft(c.start)}</span>
-            <span class="sub-txt">${wordSpans(c.text, i)}${subtitleTranslationEnabled && subtitleTranslations.has(subtitleTranslationKey(c)) ? `<span class="sub-translation">${escHtml(subtitleTranslations.get(subtitleTranslationKey(c)))}</span>` : ''}</span>
+            <span class="sub-txt">${wordSpans(c.text, i)}</span>
             <div class="cue-actions"><button class="save-btn" style="opacity:1" ${sentenceRetries.has(`${subtitleRequest}:${i}`) ? 'disabled' : ''}
                 onclick="regenerateSentence(event,${i})" title="重新识别这一句" aria-label="重新识别这一句">
                 <i class="fa-solid ${sentenceRetries.has(`${subtitleRequest}:${i}`) ? 'fa-spinner fa-spin' : 'fa-rotate'}"></i>
