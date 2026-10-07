@@ -3240,7 +3240,7 @@ function closeDictPopup() {
 
 document.addEventListener('click', (e) => {
     const p = document.getElementById('dictPopup');
-    if (p && p.style.display !== 'none' && !p.contains(e.target) && !e.target.classList.contains('word')) {
+    if (p && p.style.display !== 'none' && !p.contains(e.target) && !e.target.closest?.('.word,[data-word]')) {
         closeDictPopup();
     }
 });
