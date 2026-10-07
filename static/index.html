@@ -3393,10 +3393,17 @@ function hd(url) {
     return url;
 }
 
-function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function escHtml(s) { return esc(s).replace(/"/g,'&quot;'); }
-function escQ(s) { return (s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
-function enc(s) { return encodeURIComponent(s||''); }
+function esc(s) {
+    if (s === null || s === undefined) return '';
+    if (Array.isArray(s)) return s.map(esc).join(', ');
+    if (typeof s === 'object') {
+        try { return esc(JSON.stringify(s)); } catch { return ''; }
+    }
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function escHtml(s) { return esc(s).replace(/"/g, '&quot;'); }
+function escQ(s) { return String(s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
+function enc(s) { return encodeURIComponent(String(s || '')); }
 
 function toast(msg, type = 'info') {
     const wrap = document.getElementById('toastWrap');

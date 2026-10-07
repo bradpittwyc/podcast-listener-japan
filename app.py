@@ -354,6 +354,22 @@ def retranscribe_sentence(body: dict):
         transcription_jobs.release(token, stopped)
 
 
+def normalize_dict_data(data):
+    if not isinstance(data, dict):
+        return {}
+    res = {}
+    for key, val in data.items():
+        if isinstance(val, list):
+            res[key] = ", ".join(str(v) for v in val if v is not None)
+        elif isinstance(val, dict):
+            res[key] = json.dumps(val, ensure_ascii=False)
+        elif val is None:
+            res[key] = ""
+        else:
+            res[key] = str(val)
+    return res
+
+
 @app.api_route("/api/define", methods=["GET", "POST", "HEAD"])
 def define_word(word: str = Query(..., min_length=1), context: str = ""):
     """
@@ -391,7 +407,7 @@ def define_word(word: str = Query(..., min_length=1), context: str = ""):
                 if not response.ok:
                     return {'status': 'error', 'message': f'Qwen 查词返回 HTTP {response.status_code}，请检查密钥、权限或额度。'}
                 data = json.loads(response.json()['choices'][0]['message']['content'])
-                return {'status': 'success', 'provider': 'qwen', 'data': data}
+                return {'status': 'success', 'provider': 'qwen', 'data': normalize_dict_data(data)}
         except (requests.RequestException, ValueError, KeyError, IndexError):
             return {'status': 'error', 'message': 'Qwen 查词失败，请检查阿里云连接后重试。'}
     if not gemini_client:
@@ -413,7 +429,7 @@ def define_word(word: str = Query(..., min_length=1), context: str = ""):
                     return {'status': 'error', 'message': f'Gemini 查词返回 HTTP {response.status_code}，请检查代理或密钥。'}
                 parts = response.json()['candidates'][0]['content']['parts']
                 text = ''.join(part.get('text', '') for part in parts if not part.get('thought'))
-                return {'status': 'success', 'provider': 'gemini', 'data': json.loads(text)}
+                return {'status': 'success', 'provider': 'gemini', 'data': normalize_dict_data(json.loads(text))}
         response = gemini_client.models.generate_content(
             model=os.environ.get("GEMINI_MODEL", "gemini-3.5-flash"),
             contents=prompt,
@@ -425,7 +441,7 @@ def define_word(word: str = Query(..., min_length=1), context: str = ""):
             text = re.sub(r'^```[a-z]*\n', '', text)
             text = re.sub(r'\n```$', '', text)
         data = json.loads(text)
-        return {"status": "success", "data": data}
+        return {"status": "success", "data": normalize_dict_data(data)}
     except Exception as e:
         print("Gemini define error:", str(e))
         return {"status": "error", "message": str(e)}
