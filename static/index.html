@@ -1849,7 +1849,7 @@ body.android-runtime .android-only{display:inline-flex!important}
     pointer-events: auto;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .mobile-cat-trigger-btn {
         display: inline-flex !important;
     }
@@ -2814,7 +2814,7 @@ window.addEventListener('touchstart', (e) => {
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
     // Edge swipe candidate ONLY when touch starts strictly at the left screen edge (X <= 25px)
-    const isMobile = window.innerWidth <= 768;
+    const isMobile = window.innerWidth <= 1024;
     isEdgeSwipeCandidate = isMobile && (touchStartX <= 25) && (touchStartY > 70);
 }, { passive: true });
 
